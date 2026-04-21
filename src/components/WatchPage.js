@@ -4,6 +4,7 @@ import { closeMenu } from "../utils/appSlice";
 import { useSearchParams } from "react-router-dom";
 import { YOUTUBE_VIDEOS_API } from "../utils/constants";
 import RecommendedVideoCard from "./RecommendedVideoCard";
+import CommentsSection from "./CommentsSection";
 
 const WatchPage = () => {
   const [searchParams] = useSearchParams();
@@ -79,6 +80,7 @@ const WatchPage = () => {
                 Video description goes here...
               </p>
             </div>
+            <CommentsSection videoId={searchParams.get("v")} />
           </div>
         </div>
 

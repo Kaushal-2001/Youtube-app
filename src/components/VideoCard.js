@@ -1,4 +1,5 @@
 import React from "react";
+import { getAvatarColor } from "../utils/constants";
 
 const VideoCard = ({ info }) => {
   if (!info) {
@@ -53,29 +54,32 @@ const VideoCard = ({ info }) => {
 
   return (
     <div className="w-full cursor-pointer group">
-      <div className="relative mb-2">
+      <div className="relative mb-3 overflow-hidden rounded-xl">
         <img
-          className="w-full rounded-xl aspect-video object-cover"
+          className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           alt={title}
           src={thumbnails.medium.url}
         />
         {contentDetails && contentDetails.duration && (
-          <span className="absolute bottom-1 right-1 bg-black bg-opacity-90 text-white text-xs font-semibold px-1 py-0.5 rounded">
+          <span className="absolute bottom-2 right-2 bg-black/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
             {formatDuration(contentDetails.duration)}
           </span>
         )}
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-3 relative">
         <div className="flex-shrink-0">
-          <div className="w-9 h-9 rounded-full bg-[#ff6b35] flex items-center justify-center text-white font-medium text-sm">
-            {channelTitle.charAt(0)}
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm"
+            style={{ backgroundColor: getAvatarColor(channelTitle) }}
+          >
+            {channelTitle.charAt(0).toUpperCase()}
           </div>
         </div>
         <div className="flex-1 min-w-0 pr-6">
           <h3 className="text-sm font-medium text-white line-clamp-2 leading-5 mb-1">
             {title}
           </h3>
-          <p className="text-sm text-[#aaa] hover:text-white cursor-pointer">
+          <p className="text-sm text-[#aaa] hover:text-white cursor-pointer truncate">
             {channelTitle}
           </p>
           <div className="flex items-center gap-1 text-sm text-[#aaa]">
@@ -84,7 +88,7 @@ const VideoCard = ({ info }) => {
             <span>{getTimeAgo(publishedAt)}</span>
           </div>
         </div>
-        <button className="absolute top-2 right-0 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button className="absolute top-0 right-0 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity">
           <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
             <path d="M12,16.5c0.83,0,1.5,0.67,1.5,1.5s-0.67,1.5-1.5,1.5s-1.5-0.67-1.5-1.5S11.17,16.5,12,16.5z M10.5,12 c0,0.83,0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5s-0.67-1.5-1.5-1.5S10.5,11.17,10.5,12z M10.5,6c0,0.83,0.67,1.5,1.5,1.5 s1.5-0.67,1.5-1.5S12.83,4.5,12,4.5S10.5,5.17,10.5,6z" />
           </svg>
