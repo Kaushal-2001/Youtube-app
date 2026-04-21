@@ -1,24 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import { Provider } from "react-redux";
+import "./App.css";
+import Head from "./components/Head";
+import Body from "./components/Body";
+import store from "./utils/store";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import WatchPage from "./components/WatchPage";
+import MainContainer from "./components/MainContainer";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Provider store={store}>
+      <BrowserRouter>
+        <div className="">
+          <Head />
+          <Body>
+            <Routes>
+              <Route path="/" element={<MainContainer />} />
+              <Route path="/watch" element={<WatchPage />} />
+            </Routes>
+          </Body>
+        </div>
+      </BrowserRouter>
+    </Provider>
   );
 }
 
