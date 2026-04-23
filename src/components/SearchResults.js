@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 import {
   getAvatarColor,
   getSearchUrl,
@@ -56,20 +57,21 @@ const ResultRow = ({ video }) => {
             className="w-full aspect-video object-cover rounded-xl"
           />
           {contentDetails?.duration && (
-            <span className="absolute bottom-2 right-2 bg-black/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
+            <span className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm text-white text-[11px] font-semibold px-1.5 py-0.5 rounded-md">
               {formatDuration(contentDetails.duration)}
             </span>
           )}
+          <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5 pointer-events-none" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-medium text-white line-clamp-2 mb-1">
+          <h3 className="text-[15px] font-medium text-white line-clamp-2 mb-1 group-hover:text-cyan-300 transition-colors">
             {title}
           </h3>
-          <div className="flex items-center gap-1 text-xs text-[#aaa] mb-2">
+          <div className="flex items-center gap-1 text-xs text-white/50 mb-2">
             {statistics?.viewCount && (
               <>
                 <span>{formatViews(statistics.viewCount)} views</span>
-                <span>•</span>
+                <span>·</span>
               </>
             )}
             <span>{getTimeAgo(publishedAt)}</span>
@@ -81,11 +83,11 @@ const ResultRow = ({ video }) => {
             >
               {channelTitle.charAt(0).toUpperCase()}
             </div>
-            <span className="text-xs text-[#aaa] hover:text-white">
+            <span className="text-xs text-white/55 hover:text-white transition-colors">
               {channelTitle}
             </span>
           </div>
-          <p className="text-xs text-[#aaa] line-clamp-2">{description}</p>
+          <p className="text-xs text-white/45 line-clamp-2">{description}</p>
         </div>
       </div>
     </Link>
@@ -94,18 +96,19 @@ const ResultRow = ({ video }) => {
 
 const SkeletonRow = () => (
   <div className="flex gap-4 animate-pulse">
-    <div className="w-[360px] aspect-video rounded-xl bg-[#272727] flex-shrink-0" />
+    <div className="w-[360px] aspect-video rounded-xl bg-white/5 flex-shrink-0" />
     <div className="flex-1 space-y-2">
-      <div className="h-4 bg-[#272727] rounded w-4/5" />
-      <div className="h-3 bg-[#272727] rounded w-1/3" />
-      <div className="h-3 bg-[#272727] rounded w-1/4" />
-      <div className="h-3 bg-[#272727] rounded w-full mt-3" />
-      <div className="h-3 bg-[#272727] rounded w-5/6" />
+      <div className="h-4 bg-white/5 rounded w-4/5" />
+      <div className="h-3 bg-white/5 rounded w-1/3" />
+      <div className="h-3 bg-white/5 rounded w-1/4" />
+      <div className="h-3 bg-white/5 rounded w-full mt-3" />
+      <div className="h-3 bg-white/5 rounded w-5/6" />
     </div>
   </div>
 );
 
 const SearchResults = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const query = searchParams.get("search_query") || "";
   const [videos, setVideos] = useState([]);
@@ -154,22 +157,32 @@ const SearchResults = () => {
   }, [query]);
 
   return (
-    <div className="w-full h-full overflow-y-auto px-6 py-6">
+    <div className="w-full min-h-[calc(100vh-4rem)] px-6 py-6">
       <div className="max-w-[1100px] mx-auto space-y-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-1 pl-2 pr-3 py-1.5 rounded-full
+            text-[13px] font-medium text-white/60 hover:text-white
+            bg-white/[0.06] border border-white/[0.07] hover:bg-white/[0.11]
+            transition-all duration-150"
+        >
+          <ChevronLeft className="w-4 h-4" strokeWidth={2} />
+          Back
+        </button>
         {!query && (
-          <p className="text-[#aaa] text-sm">Enter a search term above.</p>
+          <p className="text-white/50 text-sm">Enter a search term above.</p>
         )}
         {query && loading &&
           Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)}
         {query && !loading && error && (
-          <p className="text-[#aaa] text-sm">{error}</p>
+          <p className="text-white/50 text-sm">{error}</p>
         )}
         {query && !loading && !error && videos.length === 0 && (
           <div className="py-16 text-center">
             <h2 className="text-lg text-white mb-1">
               No results found for &ldquo;{query}&rdquo;
             </h2>
-            <p className="text-sm text-[#aaa]">Try different keywords.</p>
+            <p className="text-sm text-white/50">Try different keywords.</p>
           </div>
         )}
         {query && !loading && !error &&

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import WatchPage from "./components/WatchPage";
 import MainContainer from "./components/MainContainer";
 import SearchResults from "./components/SearchResults";
+import Shorts from "./components/Shorts";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
               <Route path="/" element={<MainContainer />} />
               <Route path="/watch" element={<WatchPage />} />
               <Route path="/results" element={<SearchResults />} />
+              <Route path="/shorts" element={<Shorts />} />
             </Routes>
           </Body>
         </div>

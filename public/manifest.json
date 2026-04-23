@@ -1,6 +1,6 @@
 {
-  "short_name": "YouTube Clone",
-  "name": "YouTube Clone",
+  "short_name": "SeamlessTV",
+  "name": "SeamlessTV",
   "icons": [
     {
       "src": "favicon.svg",
@@ -15,6 +15,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#0f0f0f",
-  "background_color": "#0f0f0f"
+  "theme_color": "#0a0e13",
+  "background_color": "#0a0e13"
 }

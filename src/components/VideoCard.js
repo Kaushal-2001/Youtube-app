@@ -1,98 +1,116 @@
 import React from "react";
 import { getAvatarColor } from "../utils/constants";
 
-const VideoCard = ({ info }) => {
-  if (!info) {
-    return null;
+const formatViews = (count) => {
+  const n = Number(count) || 0;
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(0) + "K";
+  return String(n);
+};
+
+const getTimeAgo = (date) => {
+  const diffH = Math.floor((new Date() - new Date(date)) / 3_600_000);
+  if (diffH < 1) return "just now";
+  if (diffH < 24) return `${diffH}h ago`;
+  const d = Math.floor(diffH / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(mo / 12)}y ago`;
+};
+
+const formatDuration = (duration) => {
+  if (!duration) return null;
+  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+  if (!match) return null;
+  const h = (match[1] || "").replace("H", "");
+  const m = (match[2] || "").replace("M", "");
+  const s = (match[3] || "").replace("S", "");
+  if (h) return `${h}:${m.padStart(2, "0")}:${s.padStart(2, "0")}`;
+  return `${m || "0"}:${s.padStart(2, "0")}`;
+};
+
+/* Editorial badge rotation — deterministic from video id */
+const BADGES = [
+  { label: "EDITOR'S PICK", star: true },
+  { label: "4K HDR" },
+  { label: "LIVE", dot: true },
+  { label: "SERIES" },
+  { label: "NEW" },
+  { label: "DOC" },
+  { label: "TRENDING" },
+  { label: "INTERVIEW" },
+];
+
+const pickBadge = (id) => {
+  if (!id) return BADGES[0];
+  let h = 0;
+  for (let i = 0; i < id.length; i++) {
+    h = (h * 31 + id.charCodeAt(i)) & 0x7fffffff;
   }
+  return BADGES[h % BADGES.length];
+};
 
-  const { snippet, statistics, contentDetails } = info;
+const VideoCard = ({ info }) => {
+  if (!info) return null;
+  const { snippet, statistics, contentDetails, id } = info;
   const { thumbnails, title, channelTitle, publishedAt } = snippet;
-
-  // Format view count
-  const formatViews = (count) => {
-    if (count >= 1000000) {
-      return (count / 1000000).toFixed(1) + "M";
-    } else if (count >= 1000) {
-      return (count / 1000).toFixed(0) + "K";
-    }
-    return count;
-  };
-
-  // Format time ago
-  const getTimeAgo = (date) => {
-    const now = new Date();
-    const published = new Date(date);
-    const diffInHours = Math.floor((now - published) / (1000 * 60 * 60));
-
-    if (diffInHours < 24) {
-      return `${diffInHours} hours ago`;
-    } else if (diffInHours < 24 * 30) {
-      const days = Math.floor(diffInHours / 24);
-      return `${days} day${days > 1 ? "s" : ""} ago`;
-    } else if (diffInHours < 24 * 365) {
-      const months = Math.floor(diffInHours / (24 * 30));
-      return `${months} month${months > 1 ? "s" : ""} ago`;
-    } else {
-      const years = Math.floor(diffInHours / (24 * 365));
-      return `${years} year${years > 1 ? "s" : ""} ago`;
-    }
-  };
-
-  // Format duration
-  const formatDuration = (duration) => {
-    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-    const hours = (match[1] || "").replace("H", "");
-    const minutes = (match[2] || "").replace("M", "");
-    const seconds = (match[3] || "").replace("S", "");
-
-    if (hours) {
-      return `${hours}:${minutes.padStart(2, "0")}:${seconds.padStart(2, "0")}`;
-    }
-    return `${minutes || "0"}:${seconds.padStart(2, "0")}`;
-  };
+  const badge = pickBadge(id);
+  const avatarColor = getAvatarColor(channelTitle);
 
   return (
-    <div className="w-full cursor-pointer group">
-      <div className="relative mb-3 overflow-hidden rounded-xl">
+    <div className="group cursor-pointer">
+      {/* Thumbnail */}
+      <div className="relative mb-3 overflow-hidden rounded-xl bg-white/[0.04] aspect-video border border-white/[0.04]">
         <img
-          className="w-full aspect-video object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          src={thumbnails.high.url}
           alt={title}
-          src={thumbnails.medium.url}
+          loading="lazy"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
-        {contentDetails && contentDetails.duration && (
-          <span className="absolute bottom-2 right-2 bg-black/90 text-white text-xs font-semibold px-1.5 py-0.5 rounded">
+
+        {/* Editorial badge top-left */}
+        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold tracking-[0.12em]">
+          {badge.dot && (
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b3d]" />
+          )}
+          {badge.star && (
+            <span className="text-[#d8a86a] leading-none">✦</span>
+          )}
+          {badge.label}
+        </span>
+
+        {/* Duration bottom-right */}
+        {contentDetails?.duration && (
+          <span className="absolute bottom-3 right-3 px-1.5 py-0.5 rounded-md bg-black/80 text-white text-[11px] font-semibold tabular-nums">
             {formatDuration(contentDetails.duration)}
           </span>
         )}
       </div>
-      <div className="flex gap-3 relative">
-        <div className="flex-shrink-0">
-          <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm"
-            style={{ backgroundColor: getAvatarColor(channelTitle) }}
-          >
-            {channelTitle.charAt(0).toUpperCase()}
-          </div>
+
+      {/* Info row */}
+      <div className="flex gap-3">
+        <div
+          className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[13px] font-semibold"
+          style={{ backgroundColor: avatarColor }}
+        >
+          {channelTitle.charAt(0).toUpperCase()}
         </div>
-        <div className="flex-1 min-w-0 pr-6">
-          <h3 className="text-sm font-medium text-white line-clamp-2 leading-5 mb-1">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[14px] font-serif text-white leading-snug line-clamp-2 mb-1 font-normal group-hover:text-[#d8a86a] transition-colors">
             {title}
           </h3>
-          <p className="text-sm text-[#aaa] hover:text-white cursor-pointer truncate">
-            {channelTitle}
-          </p>
-          <div className="flex items-center gap-1 text-sm text-[#aaa]">
-            <span>{formatViews(statistics.viewCount)} views</span>
-            <span>•</span>
+          <p className="text-[12px] text-white/45 truncate">{channelTitle}</p>
+          <div className="flex items-center gap-1.5 text-[11px] text-white/30 mt-0.5">
+            {statistics?.viewCount && (
+              <>
+                <span>{formatViews(statistics.viewCount)}</span>
+                <span>·</span>
+              </>
+            )}
             <span>{getTimeAgo(publishedAt)}</span>
           </div>
         </div>
-        <button className="absolute top-0 right-0 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity">
-          <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
-            <path d="M12,16.5c0.83,0,1.5,0.67,1.5,1.5s-0.67,1.5-1.5,1.5s-1.5-0.67-1.5-1.5S11.17,16.5,12,16.5z M10.5,12 c0,0.83,0.67,1.5,1.5,1.5s1.5-0.67,1.5-1.5s-0.67-1.5-1.5-1.5S10.5,11.17,10.5,12z M10.5,6c0,0.83,0.67,1.5,1.5,1.5 s1.5-0.67,1.5-1.5S12.83,4.5,12,4.5S10.5,5.17,10.5,6z" />
-          </svg>
-        </button>
       </div>
     </div>
   );

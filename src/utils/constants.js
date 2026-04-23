@@ -1,7 +1,7 @@
 const GOOGLE_API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
 
 export const YOUTUBE_VIDEOS_API =
-  "https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=50&regionCode=AU&key=" +
+  "https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&chart=mostPopular&maxResults=50&regionCode=US&key=" +
   GOOGLE_API_KEY;
 
 export const getVideosUrl = (categoryId) => {
@@ -21,25 +21,25 @@ export const getVideosByIdsUrl = (ids) =>
     ","
   )}&key=${GOOGLE_API_KEY}`;
 
+export const getShortsUrl = (maxResults = 25) =>
+  `https://youtube.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&maxResults=${maxResults}&q=%23shorts&regionCode=US&key=${GOOGLE_API_KEY}`;
+
 export const getCommentsUrl = (videoId, maxResults = 20) =>
   `https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=${maxResults}&order=relevance&key=${GOOGLE_API_KEY}`;
 
 export const CATEGORIES = [
-  { label: "All", id: null },
-  { label: "Music", id: "10" },
-  { label: "Gaming", id: "20" },
-  { label: "Sports", id: "17" },
-  { label: "Film & Animation", id: "1" },
-  { label: "Comedy", id: "23" },
-  { label: "Entertainment", id: "24" },
-  { label: "News", id: "25" },
-  { label: "Education", id: "27" },
-  { label: "Science & Tech", id: "28" },
-  { label: "Howto & Style", id: "26" },
-  { label: "People & Blogs", id: "22" },
-  { label: "Autos", id: "2" },
-  { label: "Pets & Animals", id: "15" },
-  { label: "Travel", id: "19" },
+  { label: "All",             id: null },
+  { label: "Cinema",          id: "1"  },
+  { label: "Music Live",      id: "10" },
+  { label: "Design & Craft",  id: "26" },
+  { label: "Tech Deep-dives", id: "28" },
+  { label: "Late Night",      id: "23" },
+  { label: "Cooking",         id: "22" },
+  { label: "Photography",     id: "24" },
+  { label: "Essays",          id: "27" },
+  { label: "Ambient",         id: "20" },
+  { label: "Podcasts",        id: "25" },
+  { label: "Sport Shorts",    id: "17" },
 ];
 
 const AVATAR_COLORS = [
@@ -61,6 +61,20 @@ const AVATAR_COLORS = [
   "#A1887F",
   "#90A4AE",
 ];
+
+/* Pick the highest-resolution thumbnail YouTube returns, with graceful fallback.
+   maxres = 1280x720, standard = 640x480, high = 480x360, medium = 320x180 */
+export const getBestThumbnail = (thumbnails) => {
+  if (!thumbnails) return null;
+  return (
+    thumbnails.maxres?.url ||
+    thumbnails.standard?.url ||
+    thumbnails.high?.url ||
+    thumbnails.medium?.url ||
+    thumbnails.default?.url ||
+    null
+  );
+};
 
 export const getAvatarColor = (name) => {
   if (!name) return AVATAR_COLORS[0];
