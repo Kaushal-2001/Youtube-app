@@ -27,19 +27,20 @@ export const getShortsUrl = (maxResults = 25) =>
 export const getCommentsUrl = (videoId, maxResults = 20) =>
   `https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=${maxResults}&order=relevance&key=${GOOGLE_API_KEY}`;
 
+/* Editorial categories shown in the homepage rail.
+   Each maps to its closest YouTube category id so that switching tabs
+   actually changes the fetch result. */
 export const CATEGORIES = [
-  { label: "All",             id: null },
-  { label: "Cinema",          id: "1"  },
-  { label: "Music Live",      id: "10" },
-  { label: "Design & Craft",  id: "26" },
-  { label: "Tech Deep-dives", id: "28" },
-  { label: "Late Night",      id: "23" },
-  { label: "Cooking",         id: "22" },
-  { label: "Photography",     id: "24" },
-  { label: "Essays",          id: "27" },
-  { label: "Ambient",         id: "20" },
-  { label: "Podcasts",        id: "25" },
-  { label: "Sport Shorts",    id: "17" },
+  { label: "For You",       id: null  },
+  { label: "Design",        id: "26"  },
+  { label: "Science",       id: "28"  },
+  { label: "Architecture",  id: "1"   },
+  { label: "Music",         id: "10"  },
+  { label: "Literature",    id: "27"  },
+  { label: "Nature",        id: "19"  },
+  { label: "Technology",    id: "28"  },
+  { label: "Film",          id: "1"   },
+  { label: "Philosophy",    id: "27"  },
 ];
 
 const AVATAR_COLORS = [

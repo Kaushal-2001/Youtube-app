@@ -1,115 +1,95 @@
 import React from "react";
-import { getAvatarColor } from "../utils/constants";
-
-const formatViews = (count) => {
-  const n = Number(count) || 0;
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + "K";
-  return String(n);
-};
-
-const getTimeAgo = (date) => {
-  const diffH = Math.floor((new Date() - new Date(date)) / 3_600_000);
-  if (diffH < 1) return "just now";
-  if (diffH < 24) return `${diffH}h ago`;
-  const d = Math.floor(diffH / 24);
-  if (d < 30) return `${d}d ago`;
-  const mo = Math.floor(d / 30);
-  if (mo < 12) return `${mo}mo ago`;
-  return `${Math.floor(mo / 12)}y ago`;
-};
+import { getBestThumbnail } from "../utils/constants";
 
 const formatDuration = (duration) => {
-  if (!duration) return null;
-  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-  if (!match) return null;
-  const h = (match[1] || "").replace("H", "");
-  const m = (match[2] || "").replace("M", "");
-  const s = (match[3] || "").replace("S", "");
-  if (h) return `${h}:${m.padStart(2, "0")}:${s.padStart(2, "0")}`;
-  return `${m || "0"}:${s.padStart(2, "0")}`;
+  if (!duration) return "";
+  const m = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return "";
+  const h = parseInt(m[1] || 0);
+  const mi = parseInt(m[2] || 0);
+  const s = parseInt(m[3] || 0);
+  if (h > 0) return `${h}:${String(mi).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${mi}:${String(s).padStart(2, "0")}`;
 };
 
-/* Editorial badge rotation — deterministic from video id */
-const BADGES = [
-  { label: "EDITOR'S PICK", star: true },
-  { label: "4K HDR" },
-  { label: "LIVE", dot: true },
-  { label: "SERIES" },
-  { label: "NEW" },
-  { label: "DOC" },
-  { label: "TRENDING" },
-  { label: "INTERVIEW" },
-];
-
-const pickBadge = (id) => {
-  if (!id) return BADGES[0];
-  let h = 0;
-  for (let i = 0; i < id.length; i++) {
-    h = (h * 31 + id.charCodeAt(i)) & 0x7fffffff;
-  }
-  return BADGES[h % BADGES.length];
+const formatRelativeTime = (iso) => {
+  if (!iso) return "";
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (d < 1) return "Today";
+  if (d < 7) return `${d}d ago`;
+  if (d < 30) return `${Math.floor(d / 7)}w ago`;
+  if (d < 365) return `${Math.floor(d / 30)}mo ago`;
+  return `${Math.floor(d / 365)}y ago`;
 };
 
-const VideoCard = ({ info }) => {
+/* YouTube serves a tiny 120x90 placeholder when the requested
+   resolution is missing (common for fresh live streams). */
+const PLACEHOLDER_THRESHOLD = 200;
+
+const VideoCard = ({ info, animDelay, onLoadFail }) => {
   if (!info) return null;
-  const { snippet, statistics, contentDetails, id } = info;
-  const { thumbnails, title, channelTitle, publishedAt } = snippet;
-  const badge = pickBadge(id);
-  const avatarColor = getAvatarColor(channelTitle);
+  const { snippet, contentDetails } = info;
+  const { title, channelTitle, publishedAt } = snippet;
+  const thumb = getBestThumbnail(snippet.thumbnails);
+
+  const animStyle =
+    animDelay !== undefined
+      ? { animationDelay: `${animDelay}ms` }
+      : undefined;
+
+  const handleLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (
+      naturalWidth < PLACEHOLDER_THRESHOLD ||
+      naturalHeight < PLACEHOLDER_THRESHOLD
+    ) {
+      onLoadFail?.();
+    }
+  };
+
+  if (!thumb) {
+    /* No usable thumbnail at all — let the parent drop the card. */
+    onLoadFail?.();
+    return null;
+  }
 
   return (
-    <div className="group cursor-pointer">
-      {/* Thumbnail */}
-      <div className="relative mb-3 overflow-hidden rounded-xl bg-white/[0.04] aspect-video border border-white/[0.04]">
-        <img
-          src={thumbnails.high.url}
-          alt={title}
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-        />
-
-        {/* Editorial badge top-left */}
-        <span className="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold tracking-[0.12em]">
-          {badge.dot && (
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b3d]" />
-          )}
-          {badge.star && (
-            <span className="text-[#d8a86a] leading-none">✦</span>
-          )}
-          {badge.label}
-        </span>
-
-        {/* Duration bottom-right */}
-        {contentDetails?.duration && (
-          <span className="absolute bottom-3 right-3 px-1.5 py-0.5 rounded-md bg-black/80 text-white text-[11px] font-semibold tabular-nums">
-            {formatDuration(contentDetails.duration)}
-          </span>
-        )}
-      </div>
-
-      {/* Info row */}
-      <div className="flex gap-3">
-        <div
-          className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[13px] font-semibold"
-          style={{ backgroundColor: avatarColor }}
-        >
-          {channelTitle.charAt(0).toUpperCase()}
+    <div
+      className={`vcard${animDelay !== undefined ? " card-enter" : ""}`}
+      style={animStyle}
+    >
+      <div className="thumb-shell">
+        <div className="thumb-inner aspect-video bg-white/[0.04]">
+          <img
+            src={thumb}
+            alt={title}
+            loading="lazy"
+            onError={() => onLoadFail?.()}
+            onLoad={handleLoad}
+            className="w-full h-full object-cover"
+          />
         </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[14px] font-serif text-white leading-snug line-clamp-2 mb-1 font-normal group-hover:text-[#d8a86a] transition-colors">
-            {title}
-          </h3>
-          <p className="text-[12px] text-white/45 truncate">{channelTitle}</p>
-          <div className="flex items-center gap-1.5 text-[11px] text-white/30 mt-0.5">
-            {statistics?.viewCount && (
-              <>
-                <span>{formatViews(statistics.viewCount)}</span>
-                <span>·</span>
-              </>
-            )}
-            <span>{getTimeAgo(publishedAt)}</span>
-          </div>
+      </div>
+      <div className="pt-2.5 flex flex-col gap-1">
+        <p
+          className="text-[13px] font-medium text-[#F5F1EA] leading-[1.35] line-clamp-2"
+          style={{ letterSpacing: "-0.005em" }}
+        >
+          {title}
+        </p>
+        <div
+          className="flex flex-wrap items-center text-[11px] text-white/[0.34]"
+          style={{ rowGap: 2, columnGap: 8 }}
+        >
+          <span className="truncate">{channelTitle}</span>
+          <span>·</span>
+          <span>{formatRelativeTime(publishedAt)}</span>
+          {contentDetails?.duration && (
+            <>
+              <span>·</span>
+              <span>{formatDuration(contentDetails.duration)}</span>
+            </>
+          )}
         </div>
       </div>
     </div>

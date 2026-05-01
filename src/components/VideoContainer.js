@@ -88,7 +88,7 @@ const VideoContainer = () => {
   if (!loading && videos.length === 0) return <EmptyState />;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-10">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-7">
       {loading
         ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
         : videos.map((video) => (

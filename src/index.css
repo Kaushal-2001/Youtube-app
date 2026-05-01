@@ -9,7 +9,7 @@
 }
 
 html, body {
-  background-color: #09090f;
+  background-color: #0A0A0B;
 }
 
 body {
@@ -17,38 +17,225 @@ body {
   font-family: "Inter", "Roboto", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #09090f;
-  color: #f1f5f9;
+  background-color: #0A0A0B;
+  color: #F5F1EA;
+  font-size: 14px;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(255, 92, 43, 0.22);
+  color: #F5F1EA;
+}
+
+input::placeholder {
+  color: rgba(245, 241, 234, 0.28);
+}
+input:focus {
+  outline: none;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 5px;
+  height: 5px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  background: rgba(245, 241, 234, 0.08);
+  border-radius: 99px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(245, 241, 234, 0.18);
 }
 
-.scrollbar-hide::-webkit-scrollbar {
+.scrollbar-hide::-webkit-scrollbar,
+.no-bar::-webkit-scrollbar {
   display: none;
 }
-
-.scrollbar-hide {
+.scrollbar-hide,
+.no-bar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* ── Editorial homepage grid ─────────────────────────── */
+.vgrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 36px 18px;
+}
+@media (max-width: 1279px) { .vgrid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 899px)  { .vgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 599px)  { .vgrid { grid-template-columns: 1fr; } }
+
+/* ── Animations ──────────────────────────────────────── */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card-enter {
+  opacity: 0;
+  animation: cardIn 400ms ease-out forwards;
+}
+
+@keyframes pickIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.pick-enter {
+  opacity: 0;
+  animation: pickIn 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes drawLine {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.s-line {
+  display: block;
+  height: 1px;
+  background: rgba(245, 241, 234, 0.1);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.s-line.drawn {
+  animation: drawLine 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.45; transform: scale(0.72); }
+}
+
+/* ── Editorial card hover ────────────────────────────── */
+.vcard {
+  cursor: pointer;
+  transition: transform 240ms ease;
+  display: block;
+}
+.vcard:hover {
+  transform: translateY(-2px);
+}
+.vcard .thumb-shell {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: border-color 240ms;
+}
+.vcard:hover .thumb-shell {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.vcard .thumb-inner {
+  transition: transform 240ms ease;
+}
+.vcard:hover .thumb-inner {
+  transform: scale(1.04);
+}
+
+/* ── Search expand ───────────────────────────────────── */
+.search-wrap { transition: width 220ms ease-out; width: 290px; }
+.search-wrap.focused { width: 450px; }
+@media (max-width: 1023px) {
+  .search-wrap { width: 220px; }
+  .search-wrap.focused { width: 320px; }
+}
+
+/* ── Watch page: player fade-in ───────────────────────── */
+@keyframes playerFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.player-fadein { animation: playerFade 400ms ease forwards; }
+
+/* ── Watch page: title word stagger ──────────────────── */
+@keyframes wordRise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.word-stagger {
+  opacity: 0;
+  display: inline-block;
+  animation: wordRise 450ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Watch page: rail slide-in ───────────────────────── */
+@keyframes railSlide {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.rail-slidein { animation: railSlide 500ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both; }
+
+/* ── Watch page: like heart pop ──────────────────────── */
+@keyframes heartPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.28); }
+  70%  { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+.heart-pop { animation: heartPop 380ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+/* ── Watch page: up-next card hover ──────────────────── */
+.upnext-card { transition: transform 220ms ease, border-color 220ms; cursor: pointer; }
+.upnext-card:hover { transform: translateY(-1px); }
+.upnext-card .unc-thumb { transition: transform 220ms ease; }
+.upnext-card:hover .unc-thumb { transform: scale(1.02); }
+.upnext-card .unc-shell { transition: border-color 220ms; }
+.upnext-card:hover .unc-shell { border-color: rgba(245, 241, 234, 0.16) !important; }
+
+/* ── Watch page: action button row ───────────────────── */
+.action-btn {
+  transition: color 140ms;
+  color: rgba(245, 241, 234, 0.5);
+  cursor: pointer;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 0;
+}
+.action-btn:hover { color: #F5F1EA; }
+
+/* ── Watch page: italic comment input ────────────────── */
+.comment-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(245, 241, 234, 0.12);
+  padding: 8px 0;
+  color: #F5F1EA;
+  font-size: 14px;
+  font-family: inherit;
+  font-style: italic;
+  resize: none;
+  overflow: hidden;
+  transition: border-color 220ms, height 220ms;
+  height: 36px;
+}
+.comment-input::placeholder {
+  color: rgba(245, 241, 234, 0.38);
+  font-style: italic;
+}
+.comment-input:focus {
+  border-color: rgba(245, 241, 234, 0.32);
+  height: 72px;
+  font-style: normal;
+  outline: none;
+}
+
+/* ── Watch page: responsive collapse ─────────────────── */
+@media (max-width: 900px) {
+  .watch-layout { flex-direction: column !important; }
+  .left-col { max-width: 100% !important; }
+  .right-col { width: 100% !important; max-width: 100% !important; }
+  .upnext-cards-vertical { flex-direction: row !important; overflow-x: auto; }
+  .upnext-cards-vertical > * { flex-shrink: 0; width: 280px; }
 }

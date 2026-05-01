@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bookmark, Play } from "lucide-react";
-import { getAvatarColor, getVideosUrl } from "../utils/constants";
+import { Bookmark } from "lucide-react";
+import { getAvatarColor, getBestThumbnail, getVideosUrl } from "../utils/constants";
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 const formatViews = (count) => {
@@ -22,19 +22,25 @@ const formatDuration = (duration) => {
   return `${m || "0"}:${s.padStart(2, "0")}`;
 };
 
-/* Render a title with a middle word italicised in amber */
+const PlayGlyph = ({ size = 12 }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden>
+    <polygon points="4,2 14,8 4,14" fill="currentColor" />
+  </svg>
+);
+
+/* Title with middle word italicised in orange */
 const EditorialTitle = ({ text, className }) => {
   const words = text.split(/\s+/);
-  if (words.length < 3) {
-    return <span className={className}>{text}</span>;
-  }
+  if (words.length < 3) return <span className={className}>{text}</span>;
   const accentIdx = Math.min(2, Math.floor(words.length / 3));
   return (
     <span className={className}>
       {words.map((w, i) => (
         <React.Fragment key={i}>
           {i === accentIdx ? (
-            <span className="italic text-[#d8a86a] font-normal">{w}</span>
+            <em className="italic text-[#e8622a] not-italic-none" style={{ fontStyle: "italic" }}>
+              {w}
+            </em>
           ) : (
             w
           )}
@@ -49,138 +55,186 @@ const EditorialTitle = ({ text, className }) => {
 const FeaturedCard = ({ video }) => {
   const { snippet, statistics, contentDetails, id } = video;
   const { title, channelTitle } = snippet;
+  const [saved, setSaved] = useState(false);
   const avatarColor = getAvatarColor(channelTitle);
 
   return (
-    <Link
-      to={`/watch?v=${id}`}
-      className="group relative rounded-2xl overflow-hidden flex flex-col justify-between p-8 min-h-[520px] border border-white/[0.04] hover:border-white/[0.08] transition-colors"
+    <div
+      className="relative rounded-[10px] overflow-hidden min-h-[320px]"
       style={{
         background:
-          "radial-gradient(ellipse 110% 80% at 28% 38%, #5a3115 0%, #3a1c0a 32%, #1f0f07 62%, #120905 88%, #0a0503 100%)",
+          "linear-gradient(135deg, #3e2413 0%, #221510 30%, #14100c 60%, #0c0907 100%)",
+        boxShadow:
+          "0 0 60px rgba(232,98,42,0.1), 0 4px 24px rgba(0,0,0,0.4)",
       }}
     >
-      {/* Decorative background glyph */}
-      <span
+      {/* Animated subtle background */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(135deg, #3e2413 0%, #221510 30%, #14100c 60%, #0c0907 100%)",
+          animation: "hero-scale 12s ease-in-out infinite",
+          transformOrigin: "center center",
+        }}
+      />
+
+      {/* Watermark "sl." */}
+      <div
         aria-hidden
-        className="absolute right-8 top-20 text-[260px] font-serif italic text-white/[0.035] leading-none select-none pointer-events-none"
+        className="absolute right-7 top-1/2 -translate-y-1/2 font-serif italic text-white/[0.05] leading-none select-none pointer-events-none"
+        style={{ fontSize: 96, letterSpacing: "-0.04em" }}
       >
         sl.
-      </span>
-
-      {/* Top: badges */}
-      <div className="flex items-center gap-2 relative z-10">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#ff6b3d] text-white text-[10px] font-bold tracking-[0.15em] uppercase">
-          <span className="w-1.5 h-1.5 rounded-full bg-white/90 animate-pulse" />
-          Live Now
-        </span>
-        <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.07] text-white/75 text-[10px] font-semibold tracking-[0.15em] uppercase">
-          Documentary · 4K HDR
-        </span>
       </div>
 
-      {/* Middle: title + meta */}
-      <div className="relative z-10 mt-8">
-        <EditorialTitle
-          text={title}
-          className="block text-[54px] leading-[1.05] font-serif text-white font-normal mb-6 max-w-[620px]"
-        />
-        <div className="flex items-center gap-3 text-[13px] text-white/55">
-          <div
-            className="w-7 h-7 rounded-full flex-shrink-0 border border-white/[0.1]"
-            style={{ backgroundColor: avatarColor }}
+      {/* Bottom gradient wash */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(0deg, rgba(5,5,10,0.95) 0%, transparent 55%)",
+        }}
+      />
+
+      {/* Content */}
+      <Link
+        to={`/watch?v=${id}`}
+        className="relative z-10 p-7 h-full min-h-[320px] flex flex-col justify-between outline-none"
+      >
+        {/* Top badges */}
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex items-center gap-1.5 px-[7px] py-[2.5px] rounded-[4px] bg-[#dc4a1a] text-white text-[9px] font-semibold tracking-[0.08em] uppercase">
+            <span
+              className="w-1.5 h-1.5 rounded-full bg-white"
+              style={{ animation: "pulse-live 1.4s ease-in-out infinite" }}
+            />
+            Live Now
+          </span>
+          <span className="inline-flex items-center px-[7px] py-[2.5px] rounded-[4px] bg-white/[0.1] border border-white/[0.08] text-white/70 text-[9px] font-semibold tracking-[0.08em] uppercase">
+            Documentary
+          </span>
+          <span className="inline-flex items-center px-[7px] py-[2.5px] rounded-[4px] bg-white/[0.1] border border-white/[0.08] text-white/70 text-[9px] font-semibold tracking-[0.08em] uppercase">
+            4K HDR
+          </span>
+        </div>
+
+        {/* Bottom block */}
+        <div>
+          <EditorialTitle
+            text={title}
+            className="block text-[32px] leading-[1.15] font-serif text-white font-normal mb-3 max-w-[600px]"
           />
-          <span className="text-white/80 font-medium">{channelTitle}</span>
-          <span className="text-white/30">·</span>
-          <span>{formatViews(statistics?.viewCount)} watching</span>
-          <span className="text-white/30">·</span>
-          <span>Episode 03 of 06</span>
-        </div>
-      </div>
 
-      {/* Bottom: buttons + runtime */}
-      <div className="flex items-end justify-between relative z-10 mt-8">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => e.preventDefault()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-black text-[13px] font-semibold hover:bg-white/90 transition-colors"
-          >
-            <Play className="w-3.5 h-3.5 fill-black" strokeWidth={0} />
-            Watch now
-          </button>
-          <button
-            onClick={(e) => e.preventDefault()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/[0.04] border border-white/[0.12] text-white text-[13px] font-medium hover:bg-white/[0.08] transition-colors"
-          >
-            <Bookmark className="w-3.5 h-3.5" strokeWidth={1.75} />
-            Save
-          </button>
-        </div>
-        <div className="text-right">
-          <div className="text-[42px] font-serif text-white leading-none tabular-nums">
-            {formatDuration(contentDetails?.duration) || "48:22"}
+          <div className="flex items-center gap-2.5 mb-5 text-white/80">
+            <div
+              className="w-[22px] h-[22px] rounded-full flex-shrink-0"
+              style={{ backgroundColor: avatarColor }}
+            />
+            <span className="text-[12px]">{channelTitle}</span>
+            <span className="text-white/35">·</span>
+            <span className="text-[12px]">
+              {formatViews(statistics?.viewCount)} watching
+            </span>
+            <span className="text-white/35">·</span>
+            <span className="text-[12px]">Episode 03 of 06</span>
           </div>
-          <div className="text-[10px] text-white/30 tracking-[0.25em] font-semibold mt-1">
-            RUNTIME
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={(e) => e.preventDefault()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[7px] bg-[#e8622a] hover:bg-[#f27a3e] text-white text-[13px] font-medium transition-colors"
+            >
+              <PlayGlyph size={12} />
+              Watch now
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setSaved((s) => !s);
+              }}
+              className={`inline-flex items-center gap-[7px] px-[18px] py-2.5 rounded-[7px] text-[13px] font-medium backdrop-blur-sm border transition-colors ${
+                saved
+                  ? "bg-[#1d1d26] border-[#e8622a] text-[#e8622a]"
+                  : "bg-white/[0.1] border-white/[0.2] text-white/90 hover:bg-white/[0.14]"
+              }`}
+            >
+              <Bookmark className="w-3 h-3" strokeWidth={1.75} />
+              {saved ? "Saved" : "Save"}
+            </button>
+
+            <div className="ml-auto text-right">
+              <div className="text-[22px] font-light text-white leading-none tabular-nums" style={{ letterSpacing: "-0.02em" }}>
+                {formatDuration(contentDetails?.duration) || "48:22"}
+              </div>
+              <div className="text-[9px] text-white/45 tracking-[0.1em] uppercase mt-[2px]">
+                Run time
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 
-/* ── Mini side card (right) ───────────────────────────────────────── */
-const MINI_VARIANTS = [
-  { cat: "Nature",  sub: "Featured" },
-  { cat: "Music",   sub: "New Release" },
-  { cat: "Science", sub: "Trending" },
+/* ── Up-next list card (right) ────────────────────────────────────── */
+const UP_NEXT_META = [
+  { cat: "Nature",  tag: "Featured"    },
+  { cat: "Music",   tag: "New Release" },
+  { cat: "Science", tag: "Trending"    },
 ];
 
-const MiniHeroCard = ({ video, variant }) => {
-  const v = MINI_VARIANTS[variant % MINI_VARIANTS.length];
+const UpNextRow = ({ video, variant, isLast }) => {
+  const v = UP_NEXT_META[variant % UP_NEXT_META.length];
   const { snippet, statistics, contentDetails, id } = video;
-  const { title, channelTitle, thumbnails } = snippet;
+  const { title, channelTitle } = snippet;
+  const thumb = getBestThumbnail(snippet.thumbnails);
 
   return (
     <Link
       to={`/watch?v=${id}`}
-      className="group flex gap-4 p-4 rounded-2xl border border-white/[0.04] bg-white/[0.015] hover:bg-white/[0.035] hover:border-white/[0.08] transition-all flex-1"
+      className={`group flex gap-3 px-4 py-3 hover:bg-white/[0.025] transition-colors ${
+        isLast ? "" : "border-b border-white/[0.06]"
+      }`}
     >
-      <div className="relative w-[170px] flex-shrink-0 aspect-video rounded-lg overflow-hidden bg-white/[0.05]">
-        <img
-          src={thumbnails.medium.url}
-          alt=""
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-        />
+      <div className="relative w-[80px] h-[54px] flex-shrink-0 rounded-[6px] overflow-hidden bg-white/[0.05]">
+        {thumb && (
+          <img
+            src={thumb}
+            alt=""
+            loading="lazy"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
+          />
+        )}
         {contentDetails?.duration && (
-          <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/80 text-white text-[10px] font-semibold tabular-nums">
+          <span className="absolute bottom-1 right-1 px-1 py-[1px] rounded-[3px] bg-black/85 text-white text-[9px] font-medium tabular-nums">
             {formatDuration(contentDetails.duration)}
           </span>
         )}
       </div>
       <div className="flex-1 min-w-0 flex flex-col">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-bold text-[#d8a86a] tracking-[0.18em] uppercase">
+        <div className="flex items-center gap-1.5 mb-1">
+          <span className="text-[9px] font-semibold text-[#e8622a] tracking-[0.1em] uppercase">
             {v.cat}
           </span>
-          <span className="text-white/25">·</span>
-          <span className="text-[10px] font-bold text-white/40 tracking-[0.18em] uppercase">
-            {v.sub}
+          <span className="text-white/25 text-[9px]">·</span>
+          <span className="text-[9px] font-medium text-white/45 tracking-[0.08em] uppercase">
+            {v.tag}
           </span>
         </div>
-        <h3 className="text-[15px] font-serif text-white line-clamp-2 leading-snug mb-auto font-normal">
+        <h3 className="text-[12px] text-white leading-[1.35] line-clamp-2 mb-1.5 font-medium group-hover:text-white transition-colors">
           {title}
         </h3>
-        <div className="flex items-center gap-2 text-[11px] text-white/40 mt-2">
+        <div className="flex items-center gap-1.5 text-[10px] text-white/40 mt-auto">
           <div
-            className="w-4 h-4 rounded-full flex-shrink-0"
+            className="w-[14px] h-[14px] rounded-full flex-shrink-0"
             style={{ backgroundColor: getAvatarColor(channelTitle) }}
           />
           <span className="truncate">{channelTitle}</span>
           {statistics?.viewCount && (
             <>
-              <span className="text-white/25">·</span>
+              <span className="text-white/20 flex-shrink-0">·</span>
               <span className="flex-shrink-0">
                 {formatViews(statistics.viewCount)} views
               </span>
@@ -194,13 +248,9 @@ const MiniHeroCard = ({ video, variant }) => {
 
 /* ── Skeleton ─────────────────────────────────────────────────────── */
 const HeroSkeleton = () => (
-  <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-4">
-    <div className="min-h-[520px] rounded-2xl bg-white/[0.02] animate-pulse" />
-    <div className="flex flex-col gap-3">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex-1 h-[130px] rounded-2xl bg-white/[0.02] animate-pulse" />
-      ))}
-    </div>
+  <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4">
+    <div className="min-h-[320px] rounded-[10px] bg-white/[0.02] animate-pulse" />
+    <div className="rounded-[10px] bg-white/[0.02] animate-pulse" />
   </div>
 );
 
@@ -220,24 +270,45 @@ const HeroSection = () => {
   }, []);
 
   return (
-    <section className="mb-16">
+    <section className="mb-9">
       {/* Top strip */}
-      <div className="flex items-center gap-2 mb-5 pl-2">
-        <div className="w-8 h-px bg-white/[0.1]" />
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 10px rgba(52,211,153,0.7)" }} />
-        <span className="text-[10px] font-semibold text-white/35 tracking-[0.25em] uppercase">
-          Now Streaming · Curated for you
-        </span>
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="w-10 h-px bg-white/[0.12]" />
+        <div className="flex items-center gap-1.5">
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-[#dc4a1a]"
+            style={{ animation: "pulse-live 1.4s ease-in-out infinite" }}
+          />
+          <span className="text-[9px] font-semibold text-white/45 tracking-[0.14em] uppercase">
+            Now Streaming
+          </span>
+          <span className="text-white/20 text-[9px]">·</span>
+          <span className="text-[9px] font-medium text-white/45 tracking-[0.12em] uppercase">
+            Curated for you
+          </span>
+        </div>
       </div>
 
       {loading || videos.length < 4 ? (
         <HeroSkeleton />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4 items-stretch">
           <FeaturedCard video={videos[0]} />
-          <div className="flex flex-col gap-3">
-            {videos.slice(1, 4).map((v, i) => (
-              <MiniHeroCard key={v.id} video={v} variant={i} />
+
+          {/* Up next card */}
+          <div className="bg-[#14141c] border border-white/[0.06] rounded-[10px] overflow-hidden flex flex-col">
+            <div className="px-4 pt-3 pb-2.5 border-b border-white/[0.06]">
+              <span className="text-[10px] font-medium text-white/45 tracking-[0.1em] uppercase">
+                Up next
+              </span>
+            </div>
+            {videos.slice(1, 4).map((v, i, arr) => (
+              <UpNextRow
+                key={v.id}
+                video={v}
+                variant={i}
+                isLast={i === arr.length - 1}
+              />
             ))}
           </div>
         </div>

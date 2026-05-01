@@ -4,12 +4,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        "stv-bg": "#09090f",
-        "stv-surface": "#0f0f16",
-        "stv-surface-2": "#14141c",
-        "stv-accent": "#f97316",
-        "stv-live": "#ff6b3d",
-        "stv-amber": "#d8a86a",
+        "stv-bg": "#0A0A0B",
+        "stv-surface": "#15151A",
+        "stv-surface-2": "#1d1d24",
+        "stv-text": "#F5F1EA",
+        "stv-accent": "#FF5C2B",
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],

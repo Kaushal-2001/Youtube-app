@@ -1,78 +1,114 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { getAvatarColor } from "../utils/constants";
-
-const formatViews = (count) => {
-  const n = Number(count) || 0;
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(0) + "K";
-  return String(n);
-};
-
-const getTimeAgo = (date) => {
-  const diffH = Math.floor((new Date() - new Date(date)) / 3_600_000);
-  if (diffH < 24) return `${diffH}h ago`;
-  const d = Math.floor(diffH / 24);
-  if (d < 30) return `${d}d ago`;
-  const mo = Math.floor(d / 30);
-  if (mo < 12) return `${mo}mo ago`;
-  return `${Math.floor(mo / 12)}y ago`;
-};
+import { getBestThumbnail } from "../utils/constants";
 
 const formatDuration = (duration) => {
   if (!duration) return null;
-  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-  if (!match) return null;
-  const h = (match[1] || "").replace("H", "");
-  const m = (match[2] || "").replace("M", "");
-  const s = (match[3] || "").replace("S", "");
-  if (h) return `${h}:${m.padStart(2, "0")}:${s.padStart(2, "0")}`;
-  return `${m || "0"}:${s.padStart(2, "0")}`;
+  const m = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return null;
+  const h = parseInt(m[1] || 0);
+  const min = parseInt(m[2] || 0);
+  const s = parseInt(m[3] || 0);
+  if (h > 0) return `${h}:${String(min).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${min}:${String(s).padStart(2, "0")}`;
+};
+
+const formatRelativeTime = (iso) => {
+  if (!iso) return "";
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (d < 1) return "Today";
+  if (d < 7) return `${d}d ago`;
+  if (d < 30) return `${Math.floor(d / 7)}w ago`;
+  if (d < 365) return `${Math.floor(d / 30)}mo ago`;
+  return `${Math.floor(d / 365)}y ago`;
 };
 
 const RecommendedVideoCard = ({ info }) => {
-  if (!info) return null;
-  const { snippet, statistics, contentDetails } = info;
-  const { thumbnails, title, channelTitle, publishedAt } = snippet;
+  const [hidden, setHidden] = useState(false);
+  if (!info || hidden) return null;
+  const { snippet, contentDetails } = info;
+  const { title, channelTitle, publishedAt } = snippet;
+  const thumb = getBestThumbnail(snippet.thumbnails);
+  if (!thumb) return null;
+
+  const handleLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth < 200 || naturalHeight < 200) setHidden(true);
+  };
 
   return (
-    <Link to={"/watch?v=" + info.id}>
-      <div className="flex gap-2.5 cursor-pointer group">
-        <div className="relative w-[168px] flex-shrink-0">
-          <img
-            className="w-full rounded-xl aspect-video object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            alt={title}
-            src={thumbnails.medium.url}
-          />
+    <Link to={"/watch?v=" + info.id} className="upnext-card block">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "168px 1fr",
+          gap: 12,
+        }}
+      >
+        {/* Thumb */}
+        <div
+          className="unc-shell"
+          style={{
+            borderRadius: 8,
+            overflow: "hidden",
+            border: "1px solid rgba(245,241,234,0.07)",
+            position: "relative",
+            height: 94,
+            flexShrink: 0,
+            background: "rgba(245,241,234,0.04)",
+          }}
+        >
+          <div className="unc-thumb absolute inset-0">
+            <img
+              src={thumb}
+              alt={title}
+              loading="lazy"
+              onError={() => setHidden(true)}
+              onLoad={handleLoad}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {/* Duration badge */}
           {contentDetails?.duration && (
-            <span className="absolute bottom-1.5 right-1.5 bg-black/80 backdrop-blur-sm text-white text-[10px] font-semibold px-1 py-0.5 rounded-md">
-              {formatDuration(contentDetails.duration)}
-            </span>
-          )}
-          <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/5 pointer-events-none" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-[13px] font-medium text-white line-clamp-2 leading-5 mb-1 group-hover:text-cyan-300 transition-colors">
-            {title}
-          </h3>
-          <div
-            className="flex items-center gap-1.5 mb-0.5"
-          >
             <div
-              className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-white text-[9px] font-bold"
-              style={{ backgroundColor: getAvatarColor(channelTitle) }}
+              className="absolute"
+              style={{
+                bottom: 7,
+                right: 7,
+                background: "rgba(10,10,11,0.75)",
+                borderRadius: 4,
+                padding: "2px 5px",
+              }}
             >
-              {channelTitle.charAt(0).toUpperCase()}
+              <span
+                className="text-[10px] font-medium"
+                style={{ color: "rgba(245,241,234,0.75)" }}
+              >
+                {formatDuration(contentDetails.duration)}
+              </span>
             </div>
-            <p className="text-xs text-white/55 truncate">{channelTitle}</p>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-white/40">
-            {statistics?.viewCount && (
-              <span>{formatViews(statistics.viewCount)} views</span>
-            )}
-            {statistics?.viewCount && <span>·</span>}
-            <span>{getTimeAgo(publishedAt)}</span>
-          </div>
+          )}
+        </div>
+
+        {/* Text */}
+        <div className="flex flex-col gap-1 min-w-0 pt-[2px]">
+          <p
+            className="text-[13px] font-medium text-[#F5F1EA] leading-[1.35] line-clamp-2"
+          >
+            {title}
+          </p>
+          <p
+            className="text-[11px]"
+            style={{ color: "rgba(245,241,234,0.5)" }}
+          >
+            {channelTitle}
+          </p>
+          <p
+            className="text-[11px]"
+            style={{ color: "rgba(245,241,234,0.35)" }}
+          >
+            {formatDuration(contentDetails?.duration)} · {formatRelativeTime(publishedAt)}
+          </p>
         </div>
       </div>
     </Link>

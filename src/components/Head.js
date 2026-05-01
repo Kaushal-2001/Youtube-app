@@ -6,65 +6,42 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { Bell, MessageSquare, Search } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import Brand from "./Brand";
 
 const USER_NAME = "Kaushal";
 
+/* Only routes that actually exist in the app */
 const NAV_ITEMS = [
-  { label: "Discover",      to: "/"       },
-  { label: "Live",          disabled: true },
-  { label: "Shorts",        to: "/shorts" },
-  { label: "Library",       disabled: true },
-  { label: "Subscriptions", disabled: true },
-  { label: "Studio",        disabled: true },
+  { label: "Discover", to: "/"       },
+  { label: "Shorts",   to: "/shorts" },
 ];
 
-/* Nav link with orange active dot underneath */
-const NavItem = ({ to, active, disabled, children }) => {
-  const base =
-    "relative py-1 text-[14px] font-medium transition-colors duration-150 outline-none";
-  const state = active
-    ? "text-white"
-    : disabled
-    ? "text-white/35 cursor-default"
-    : "text-white/45 hover:text-white/85";
-
-  const inner = (
-    <>
-      {children}
-      {active && (
-        <span
-          aria-hidden
-          className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-1 h-1 rounded-full bg-[#f97316]"
-          style={{ boxShadow: "0 0 12px 1px rgba(249,115,22,0.7)" }}
-        />
-      )}
-    </>
-  );
-
-  if (disabled || !to) {
-    return <span className={`${base} ${state}`}>{inner}</span>;
-  }
-  return (
-    <Link to={to} className={`${base} ${state}`}>
-      {inner}
-    </Link>
-  );
-};
+const NavItem = ({ to, active, children }) => (
+  <Link
+    to={to}
+    className="text-[13px] font-medium tracking-[-0.01em] transition-colors duration-150 outline-none nav-link"
+    style={{
+      color: active ? "#F5F1EA" : "rgba(245,241,234,0.36)",
+    }}
+  >
+    {children}
+  </Link>
+);
 
 const Head = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("search_query") || "");
+  const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     setQuery(searchParams.get("search_query") || "");
   }, [searchParams]);
 
-  /* ⌘K / "/" focuses search */
+  /* "/" or ⌘K focuses search */
   useEffect(() => {
     const onKey = (e) => {
       const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k";
@@ -89,153 +66,135 @@ const Head = () => {
   };
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 h-16 bg-[#09090f]/95 backdrop-blur-xl border-b border-white/[0.03]">
-      <div className="max-w-[1400px] mx-auto h-full px-6 flex items-center gap-8">
-
+    <header
+      className="fixed top-0 inset-x-0 z-[200] h-[60px] border-b border-white/[0.05]"
+      style={{
+        background: "rgba(10,10,11,0.92)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
+      }}
+    >
+      <div className="h-full px-7 flex items-center">
         {/* Brand */}
         <Link
           to="/"
           aria-label="SeamlessTV home"
-          className="flex-shrink-0 outline-none"
+          className="flex-shrink-0 mr-9 outline-none"
         >
-          <Brand size={36} />
+          <Brand size={19} />
         </Link>
 
-        {/* Center nav */}
-        <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
+        {/* Nav */}
+        <nav className="hidden md:flex items-center gap-6">
           {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.to &&
-              (item.to === "/"
+            const active =
+              item.to === "/"
                 ? location.pathname === "/"
-                : location.pathname.startsWith(item.to));
+                : location.pathname.startsWith(item.to);
             return (
-              <NavItem
-                key={item.label}
-                to={item.to}
-                active={isActive}
-                disabled={item.disabled}
-              >
+              <NavItem key={item.label} to={item.to} active={active}>
                 {item.label}
               </NavItem>
             );
           })}
         </nav>
 
-        {/* Right cluster */}
-        <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
+        {/* Spacer */}
+        <div className="flex-1" />
 
-          {/* Search pill */}
-          <form onSubmit={handleSearch} className="hidden sm:block">
-            <div className="group flex items-center h-9 w-[280px] rounded-full border border-white/[0.06] bg-white/[0.025] hover:bg-white/[0.04] transition-colors px-3 gap-2 focus-within:border-white/[0.12]">
-              <Search className="w-[14px] h-[14px] text-white/35 flex-shrink-0" strokeWidth={2} />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search anything..."
-                className="flex-1 min-w-0 bg-transparent text-[13px] text-white placeholder-white/30 outline-none"
-              />
-              <kbd className="hidden md:flex items-center gap-0.5 h-5 px-1.5 rounded-md border border-white/[0.08] text-[10px] text-white/30 font-mono flex-shrink-0">
-                <span className="text-[11px]">⌘</span>K
-              </kbd>
-            </div>
-          </form>
+        {/* Search */}
+        <form
+          onSubmit={handleSearch}
+          className={`search-wrap${focused ? " focused" : ""} relative mr-4`}
+        >
+          <span className="absolute left-[11px] top-1/2 -translate-y-1/2 flex pointer-events-none text-white/30">
+            <Search className="w-[14px] h-[14px]" strokeWidth={2} />
+          </span>
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder="Search subjects, channels, moods…"
+            className="w-full h-9 rounded-lg bg-[#15151A] border border-white/[0.07] pl-[33px] pr-3 text-[13px] text-[#F5F1EA] placeholder-white/[0.28]"
+          />
+        </form>
 
-          {/* Notifications */}
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button
-                type="button"
-                title="Notifications"
-                className="relative w-9 h-9 rounded-full flex items-center justify-center text-white/55 hover:text-white hover:bg-white/[0.05] transition-all outline-none"
-              >
-                <Bell className="w-[18px] h-[18px]" strokeWidth={1.75} />
-                <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-[#f97316]" style={{ boxShadow: "0 0 8px 1px rgba(249,115,22,0.8)" }} />
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                align="end"
-                sideOffset={10}
-                className="z-[60] min-w-[320px] rounded-2xl p-1.5 text-white border border-white/[0.07] bg-[#0c0c13]/98 backdrop-blur-2xl shadow-[0_28px_80px_-12px_rgba(0,0,0,0.95)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-              >
-                <div className="px-3 pt-2.5 pb-2 flex items-center justify-between">
-                  <h3 className="text-[13px] font-semibold">Notifications</h3>
-                  <button className="text-[11px] text-[#f97316] hover:text-[#ff8c4c] transition-colors">
-                    Mark all read
-                  </button>
+        {/* Bell */}
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button
+              type="button"
+              title="Notifications"
+              className="bg-transparent border-none cursor-pointer p-1 mr-2 flex text-white/35 hover:text-[#F5F1EA] transition-colors duration-150 outline-none"
+            >
+              <Bell className="w-[17px] h-[17px]" strokeWidth={2} />
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              align="end"
+              sideOffset={12}
+              className="z-[300] min-w-[320px] rounded-xl p-1.5 text-[#F5F1EA] border border-white/[0.07] bg-[#0c0c10]/96 backdrop-blur-2xl shadow-[0_28px_80px_-12px_rgba(0,0,0,0.95)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+            >
+              <div className="px-3 pt-2.5 pb-2 flex items-center justify-between">
+                <h3 className="text-[13px] font-semibold">Notifications</h3>
+                <button className="text-[11px] text-[#FF5C2B] hover:opacity-80 transition-opacity">
+                  Mark all read
+                </button>
+              </div>
+              <div className="h-px bg-white/[0.06] my-1" />
+              <div className="px-6 py-10 text-center">
+                <div className="w-11 h-11 mx-auto mb-3 rounded-2xl bg-white/[0.04] flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-white/20" strokeWidth={1.5} />
                 </div>
-                <div className="h-px bg-white/[0.06] my-1" />
-                <div className="px-6 py-10 text-center">
-                  <div className="w-11 h-11 mx-auto mb-3 rounded-2xl bg-white/[0.04] flex items-center justify-center">
-                    <Bell className="w-5 h-5 text-white/20" strokeWidth={1.5} />
-                  </div>
-                  <p className="text-[13px] text-white/55 font-medium">
-                    You&apos;re all caught up
+                <p className="text-[13px] text-white/55 font-medium">
+                  You&apos;re all caught up
+                </p>
+                <p className="text-[11px] text-white/25 mt-1">
+                  New notifications will appear here.
+                </p>
+              </div>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+
+        {/* Avatar */}
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button
+              type="button"
+              aria-label="Account menu"
+              title={USER_NAME}
+              className="w-[30px] h-[30px] flex-shrink-0 rounded-full bg-[#1d1d24] border border-white/[0.09] flex items-center justify-center text-[11px] font-semibold text-[#F5F1EA] hover:border-white/[0.18] active:scale-95 transition-all outline-none"
+            >
+              {USER_NAME.charAt(0).toUpperCase()}
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              align="end"
+              sideOffset={12}
+              className="z-[300] min-w-[220px] rounded-xl p-1.5 text-[#F5F1EA] border border-white/[0.07] bg-[#0c0c10]/96 backdrop-blur-2xl shadow-[0_28px_80px_-12px_rgba(0,0,0,0.95)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+            >
+              <div className="px-4 py-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-[#1d1d24] border border-white/[0.09] flex items-center justify-center text-[15px] font-semibold flex-shrink-0">
+                  {USER_NAME.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[14px] font-semibold leading-tight truncate">
+                    {USER_NAME}
                   </p>
-                  <p className="text-[11px] text-white/25 mt-1">
-                    New notifications will appear here.
+                  <p className="text-[12px] text-white/35 truncate mt-0.5">
+                    @kaushal
                   </p>
                 </div>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-
-          {/* Messages */}
-          <button
-            type="button"
-            title="Messages"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white/55 hover:text-white hover:bg-white/[0.05] transition-all outline-none"
-          >
-            <MessageSquare className="w-[17px] h-[17px]" strokeWidth={1.75} />
-          </button>
-
-          {/* Avatar */}
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <button
-                type="button"
-                aria-label="Account menu"
-                title={USER_NAME}
-                className="ml-1 w-9 h-9 flex-shrink-0 rounded-full text-white text-[14px] font-semibold flex items-center justify-center hover:scale-[1.06] active:scale-[0.96] transition-transform duration-150 outline-none"
-                style={{
-                  background: "linear-gradient(135deg, #ff8c4c 0%, #f97316 55%, #e85d04 100%)",
-                  boxShadow: "0 4px 16px -4px rgba(249,115,22,0.6)",
-                }}
-              >
-                {USER_NAME.charAt(0).toUpperCase()}
-              </button>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                align="end"
-                sideOffset={10}
-                className="z-[60] min-w-[220px] rounded-2xl p-1.5 text-white border border-white/[0.07] bg-[#0c0c13]/98 backdrop-blur-2xl shadow-[0_28px_80px_-12px_rgba(0,0,0,0.95)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-              >
-                <div className="px-4 py-4 flex items-center gap-3">
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-[16px]"
-                    style={{
-                      background: "linear-gradient(135deg, #ff8c4c 0%, #f97316 55%, #e85d04 100%)",
-                    }}
-                  >
-                    {USER_NAME.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-semibold text-white leading-tight truncate">
-                      {USER_NAME}
-                    </p>
-                    <p className="text-[12px] text-white/35 truncate mt-0.5">
-                      @kaushal
-                    </p>
-                  </div>
-                </div>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-        </div>
+              </div>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
     </header>
   );

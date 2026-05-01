@@ -1,34 +1,17 @@
 import React from "react";
 
 const Footer = () => (
-  <footer className="mt-20 pt-8 pb-10 border-t border-white/[0.05]">
-    <div className="flex flex-wrap items-center justify-between gap-y-3 text-[10px] tracking-[0.22em] text-white/25 font-semibold uppercase">
-      <div>
-        <span>Seamless </span>
-        <span className="font-serif italic lowercase tracking-normal text-white/40 font-medium">tv</span>
-        <span className="text-white/20 mx-2">·</span>
-        <span>v2.4</span>
-        <span className="text-white/20 mx-2">·</span>
-        <span>2026</span>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <span>Curated, Never Noisy</span>
-        <span className="text-white/20">·</span>
-        <span className="font-serif italic lowercase tracking-normal text-white/40 font-normal">
-          a calmer way to watch.
-        </span>
-      </div>
-
-      <div>
-        <span>English</span>
-        <span className="text-white/20 mx-2">·</span>
-        <span>USD</span>
-        <span className="text-white/20 mx-2">·</span>
-        <span>4K Ready</span>
-      </div>
-    </div>
-  </footer>
+  <div className="max-w-[1440px] mx-auto mt-20 px-7 py-7 border-t border-white/[0.05] flex items-center justify-between">
+    <span className="font-serif text-[15px]" style={{ color: "rgba(245,241,234,0.2)" }}>
+      Seamless<span style={{ color: "rgba(255,92,43,0.45)" }}>TV</span>
+    </span>
+    <span
+      className="text-[11px]"
+      style={{ color: "rgba(245,241,234,0.18)", letterSpacing: "0.06em" }}
+    >
+      Curated, not computed.
+    </span>
+  </div>
 );
 
 export default Footer;

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import {
   getAvatarColor,
+  getBestThumbnail,
   getSearchUrl,
   getVideosByIdsUrl,
 } from "../utils/constants";
@@ -45,15 +46,26 @@ const formatDuration = (duration) => {
 };
 
 const ResultRow = ({ video }) => {
+  const [hidden, setHidden] = useState(false);
   const { snippet, statistics, contentDetails, id } = video;
-  const { title, channelTitle, thumbnails, publishedAt, description } = snippet;
+  const { title, channelTitle, publishedAt, description } = snippet;
+  const thumb = getBestThumbnail(snippet.thumbnails);
+  if (hidden || !thumb) return null;
+
+  const handleLoad = (e) => {
+    const { naturalWidth, naturalHeight } = e.currentTarget;
+    if (naturalWidth < 200 || naturalHeight < 200) setHidden(true);
+  };
+
   return (
     <Link to={`/watch?v=${id}`} className="block">
       <div className="flex gap-4 cursor-pointer group">
         <div className="relative w-[360px] flex-shrink-0">
           <img
-            src={thumbnails.medium.url}
+            src={thumb}
             alt={title}
+            onError={() => setHidden(true)}
+            onLoad={handleLoad}
             className="w-full aspect-video object-cover rounded-xl"
           />
           {contentDetails?.duration && (
@@ -157,7 +169,7 @@ const SearchResults = () => {
   }, [query]);
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] px-6 py-6">
+    <div className="w-full min-h-[calc(100vh-60px)] px-6 py-6">
       <div className="max-w-[1100px] mx-auto space-y-4">
         <button
           onClick={() => navigate(-1)}

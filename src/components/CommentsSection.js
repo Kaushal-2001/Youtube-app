@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ChevronDown, Heart, Reply } from "lucide-react";
 import { getAvatarColor, getCommentsUrl } from "../utils/constants";
 
 const formatCount = (n) => {
@@ -9,21 +10,21 @@ const formatCount = (n) => {
 };
 
 const getTimeAgo = (date) => {
-  const diffInHours = Math.floor(
+  const diffH = Math.floor(
     (new Date() - new Date(date)) / (1000 * 60 * 60)
   );
-  if (diffInHours < 1) return "just now";
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  if (diffInHours < 24 * 30) {
-    const d = Math.floor(diffInHours / 24);
-    return `${d}d ago`;
+  if (diffH < 1) return "just now";
+  if (diffH < 24) return `${diffH} hours ago`;
+  if (diffH < 24 * 30) {
+    const d = Math.floor(diffH / 24);
+    return d === 1 ? "1 day ago" : `${d} days ago`;
   }
-  if (diffInHours < 24 * 365) {
-    const m = Math.floor(diffInHours / (24 * 30));
-    return `${m}mo ago`;
+  if (diffH < 24 * 365) {
+    const m = Math.floor(diffH / (24 * 30));
+    return m === 1 ? "1 month ago" : `${m} months ago`;
   }
-  const y = Math.floor(diffInHours / (24 * 365));
-  return `${y}y ago`;
+  const y = Math.floor(diffH / (24 * 365));
+  return y === 1 ? "1 year ago" : `${y} years ago`;
 };
 
 const stripHtml = (html) => {
@@ -38,88 +39,99 @@ const stripHtml = (html) => {
     .replace(/&#39;/g, "'");
 };
 
-const Avatar = ({ name, imageUrl, size = 40 }) => {
+const Avatar = ({ name, imageUrl, size = 32 }) => {
   const [broken, setBroken] = useState(false);
-  const px = `${size}px`;
   if (imageUrl && !broken) {
     return (
       <img
         src={imageUrl}
         alt={name}
         onError={() => setBroken(true)}
-        style={{ width: px, height: px }}
+        style={{ width: size, height: size }}
         className="rounded-full flex-shrink-0 object-cover"
       />
     );
   }
   return (
     <div
-      style={{ width: px, height: px, backgroundColor: getAvatarColor(name) }}
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: getAvatarColor(name),
+      }}
       className="rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0"
     >
-      {(name || "?").charAt(0).toUpperCase()}
+      <span style={{ fontSize: Math.round(size * 0.35) }}>
+        {(name || "?").charAt(0).toUpperCase()}
+      </span>
     </div>
   );
 };
 
-const Comment = ({ comment }) => {
+const CommentRow = ({ comment }) => {
+  const [liked, setLiked] = useState(false);
   const top = comment.snippet.topLevelComment.snippet;
   const replyCount = comment.snippet.totalReplyCount || 0;
-  const [showReplies, setShowReplies] = useState(false);
   const text = stripHtml(top.textDisplay);
+  const baseLikes = top.likeCount || 0;
+  const displayLikes = baseLikes + (liked ? 1 : 0);
 
   return (
     <div className="flex gap-3">
-      <Avatar name={top.authorDisplayName} imageUrl={top.authorProfileImageUrl} />
+      <Avatar
+        name={top.authorDisplayName}
+        imageUrl={top.authorProfileImageUrl}
+        size={32}
+      />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-[13px] font-medium text-white">
+        <div className="flex items-baseline gap-2 mb-1">
+          <span
+            className="text-[13px] font-medium"
+            style={{ color: "rgba(245,241,234,0.9)" }}
+          >
             {top.authorDisplayName}
           </span>
-          <span className="text-xs text-white/40">
+          <span
+            className="text-[11px]"
+            style={{ color: "rgba(245,241,234,0.38)" }}
+          >
             {getTimeAgo(top.publishedAt)}
           </span>
         </div>
-        <p className="text-sm text-white/80 whitespace-pre-wrap break-words">
+        <p
+          className="text-[14px] leading-[1.65] mb-2 whitespace-pre-wrap break-words"
+          style={{ color: "rgba(245,241,234,0.8)" }}
+        >
           {text}
         </p>
-        <div className="flex items-center gap-4 mt-2 text-white/45">
-          <button className="flex items-center gap-1 hover:text-white transition-colors">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-              <path d="M18.77,11h-4.23l1.52-4.94C16.38,5.03,15.54,4,14.38,4c-0.58,0-1.14,0.24-1.52,0.65L7,11H3v10h4h1h9.43 c1.06,0,1.98-0.67,2.19-1.61l1.34-6C21.23,12.15,20.18,11,18.77,11z" />
-            </svg>
-            <span className="text-xs">{formatCount(top.likeCount)}</span>
-          </button>
-          <button className="hover:text-white transition-colors">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current">
-              <path d="M17,4v7l-7,0v3L3,8l7-6v2H17z M21,12v10H7v-5h1v4h12v-8h-5v1h-1v-3L21,12z" />
-            </svg>
-          </button>
-          <button className="text-xs font-medium hover:text-white transition-colors">
-            Reply
-          </button>
-        </div>
-        {replyCount > 0 && (
+        <div className="flex items-center gap-4">
           <button
-            onClick={() => setShowReplies((s) => !s)}
-            className="mt-2 flex items-center gap-2 text-cyan-400 text-sm font-medium px-2 py-1 rounded-full hover:bg-cyan-400/10 transition-colors"
+            onClick={() => setLiked((v) => !v)}
+            className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[11px] p-0 transition-colors"
+            style={{
+              color: liked ? "#FF5C2B" : "rgba(245,241,234,0.38)",
+            }}
           >
-            <svg
-              viewBox="0 0 24 24"
-              className={`w-4 h-4 fill-current transition-transform ${
-                showReplies ? "rotate-180" : ""
-              }`}
-            >
-              <path d="M7.41,8.59L12,13.17l4.59-4.58L18,10l-6,6l-6-6L7.41,8.59z" />
-            </svg>
-            {replyCount} {replyCount === 1 ? "reply" : "replies"}
+            <Heart
+              className="w-[13px] h-[13px]"
+              strokeWidth={2}
+              fill={liked ? "#FF5C2B" : "none"}
+            />
+            <span>{formatCount(displayLikes)}</span>
           </button>
-        )}
-        {showReplies && (
-          <p className="text-xs text-white/40 mt-2 ml-2">
-            Replies are not loaded in this demo.
-          </p>
-        )}
+          {replyCount > 0 && (
+            <button
+              className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[11px] p-0 transition-colors hover:text-white/70"
+              style={{ color: "rgba(245,241,234,0.38)" }}
+            >
+              <Reply className="w-[13px] h-[13px]" strokeWidth={2} />
+              <span>
+                {formatCount(replyCount)}{" "}
+                {replyCount === 1 ? "reply" : "replies"}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -127,11 +139,23 @@ const Comment = ({ comment }) => {
 
 const CommentSkeleton = () => (
   <div className="flex gap-3 animate-pulse">
-    <div className="w-10 h-10 rounded-full bg-white/5 flex-shrink-0" />
+    <div
+      className="w-8 h-8 rounded-full flex-shrink-0"
+      style={{ background: "rgba(245,241,234,0.04)" }}
+    />
     <div className="flex-1 space-y-2">
-      <div className="h-3 bg-white/5 rounded w-1/4" />
-      <div className="h-3 bg-white/5 rounded w-full" />
-      <div className="h-3 bg-white/5 rounded w-3/4" />
+      <div
+        className="h-3 w-1/4 rounded"
+        style={{ background: "rgba(245,241,234,0.04)" }}
+      />
+      <div
+        className="h-3 w-full rounded"
+        style={{ background: "rgba(245,241,234,0.04)" }}
+      />
+      <div
+        className="h-3 w-3/4 rounded"
+        style={{ background: "rgba(245,241,234,0.04)" }}
+      />
     </div>
   </div>
 );
@@ -140,50 +164,73 @@ const USER_NAME = "Kaushal";
 
 const CommentComposer = () => {
   const [text, setText] = useState("");
-  const [focused, setFocused] = useState(false);
 
-  const submit = (e) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    setText("");
-    setFocused(false);
+  const handleInput = (e) => {
+    setText(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = e.target.scrollHeight + "px";
   };
 
   return (
-    <form onSubmit={submit} className="flex gap-3 mb-6">
-      <Avatar name={USER_NAME} size={40} />
-      <div className="flex-1">
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onFocus={() => setFocused(true)}
-          placeholder="Add a comment..."
-          className="w-full bg-transparent border-b border-white/10 focus:border-white/40 outline-none py-2 text-sm text-white placeholder:text-white/40 transition-colors"
+    <div className="flex gap-3 mb-9">
+      <Avatar name={USER_NAME} size={32} />
+      <textarea
+        className="comment-input"
+        placeholder="Add a comment…"
+        rows={1}
+        value={text}
+        onChange={handleInput}
+      />
+    </div>
+  );
+};
+
+const SortDropdown = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[12px]"
+        style={{ color: "rgba(245,241,234,0.6)" }}
+      >
+        <span>Sort: {value}</span>
+        <ChevronDown
+          className="w-3 h-3 transition-transform"
+          strokeWidth={2.5}
+          style={{ transform: open ? "rotate(180deg)" : "none" }}
         />
-        {focused && (
-          <div className="flex justify-end gap-2 mt-2">
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 rounded-lg overflow-hidden z-10"
+          style={{
+            background: "#15151A",
+            border: "1px solid rgba(245,241,234,0.08)",
+            minWidth: 120,
+          }}
+        >
+          {["Top", "Newest"].map((opt) => (
             <button
-              type="button"
+              key={opt}
               onClick={() => {
-                setText("");
-                setFocused(false);
+                onChange(opt);
+                setOpen(false);
               }}
-              className="px-3 py-1.5 text-[13px] rounded-full text-white hover:bg-white/[0.06] transition-colors"
+              className="w-full text-left px-3 py-2 text-[12px] cursor-pointer hover:bg-white/[0.04] transition-colors"
+              style={{
+                color:
+                  value === opt
+                    ? "#F5F1EA"
+                    : "rgba(245,241,234,0.6)",
+              }}
             >
-              Cancel
+              {opt}
             </button>
-            <button
-              type="submit"
-              disabled={!text.trim()}
-              className="px-4 py-1.5 text-[13px] rounded-full bg-cyan-400 text-black font-medium disabled:bg-white/5 disabled:text-white/30 transition-colors"
-            >
-              Comment
-            </button>
-          </div>
-        )}
-      </div>
-    </form>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -191,8 +238,7 @@ const CommentsSection = ({ videoId }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [sort, setSort] = useState("top");
-  const [sortOpen, setSortOpen] = useState(false);
+  const [sort, setSort] = useState("Top");
 
   useEffect(() => {
     if (!videoId) return;
@@ -232,7 +278,7 @@ const CommentsSection = ({ videoId }) => {
   }, [videoId]);
 
   const sorted = React.useMemo(() => {
-    if (sort === "newest") {
+    if (sort === "Newest") {
       return [...comments].sort((a, b) => {
         const ta = new Date(a.snippet.topLevelComment.snippet.publishedAt);
         const tb = new Date(b.snippet.topLevelComment.snippet.publishedAt);
@@ -243,55 +289,34 @@ const CommentsSection = ({ videoId }) => {
   }, [comments, sort]);
 
   return (
-    <div className="mt-6 text-white">
-      <div className="flex items-center gap-6 mb-6">
-        <h2 className="text-lg font-semibold">
-          {loading
-            ? "Comments"
-            : `${formatCount(comments.length)} Comment${
-                comments.length === 1 ? "" : "s"
-              }`}
-        </h2>
-        {!error && !loading && comments.length > 0 && (
-          <div className="relative">
-            <button
-              onClick={() => setSortOpen((s) => !s)}
-              className="flex items-center gap-2 text-[13px] font-medium text-white/70 hover:text-white transition-colors"
+    <div style={{ maxWidth: 1040 }}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-7">
+        <h3
+          className="text-[16px] font-medium text-[#F5F1EA]"
+          style={{ letterSpacing: "-0.01em" }}
+        >
+          Comments{" "}
+          {!loading && (
+            <span
+              className="text-[13px] font-normal"
+              style={{ color: "rgba(245,241,234,0.36)" }}
             >
-              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                <path d="M21,6H3V5h18V6z M17,11H7v1h10V11z M14,17h-4v1h4V17z" />
-              </svg>
-              Sort by
-            </button>
-            {sortOpen && (
-              <div className="absolute left-0 top-full mt-2 bg-[#161b22]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg py-1.5 min-w-[160px] z-10">
-                {[
-                  { value: "top", label: "Top comments" },
-                  { value: "newest", label: "Newest first" },
-                ].map(({ value, label }) => (
-                  <button
-                    key={value}
-                    onClick={() => {
-                      setSort(value);
-                      setSortOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2 text-[13px] hover:bg-white/[0.06] transition-colors ${
-                      sort === value ? "text-white font-medium" : "text-white/70"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              {comments.length}
+            </span>
+          )}
+        </h3>
+        {!error && comments.length > 0 && (
+          <SortDropdown value={sort} onChange={setSort} />
         )}
       </div>
 
+      {/* Composer */}
       <CommentComposer />
 
+      {/* List */}
       {loading && (
-        <div className="space-y-5">
+        <div className="flex flex-col gap-7">
           {Array.from({ length: 5 }).map((_, i) => (
             <CommentSkeleton key={i} />
           ))}
@@ -299,17 +324,27 @@ const CommentsSection = ({ videoId }) => {
       )}
 
       {!loading && error && (
-        <p className="text-white/50 text-sm">{error}</p>
+        <p
+          className="text-[13px]"
+          style={{ color: "rgba(245,241,234,0.5)" }}
+        >
+          {error}
+        </p>
       )}
 
       {!loading && !error && comments.length === 0 && (
-        <p className="text-white/50 text-sm">No comments yet. Be the first.</p>
+        <p
+          className="text-[13px]"
+          style={{ color: "rgba(245,241,234,0.5)" }}
+        >
+          No comments yet. Be the first.
+        </p>
       )}
 
       {!loading && !error && comments.length > 0 && (
-        <div className="space-y-5">
+        <div className="flex flex-col gap-7">
           {sorted.map((c) => (
-            <Comment key={c.id} comment={c} />
+            <CommentRow key={c.id} comment={c} />
           ))}
         </div>
       )}
