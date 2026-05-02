@@ -25,7 +25,10 @@ export const getShortsUrl = (maxResults = 25) =>
   `https://youtube.googleapis.com/youtube/v3/search?part=snippet&type=video&videoDuration=short&maxResults=${maxResults}&q=%23shorts&regionCode=US&key=${GOOGLE_API_KEY}`;
 
 export const getCommentsUrl = (videoId, maxResults = 20) =>
-  `https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&maxResults=${maxResults}&order=relevance&key=${GOOGLE_API_KEY}`;
+  `https://youtube.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=${maxResults}&order=relevance&key=${GOOGLE_API_KEY}`;
+
+export const getRepliesUrl = (parentId, maxResults = 100) =>
+  `https://youtube.googleapis.com/youtube/v3/comments?part=snippet&parentId=${parentId}&maxResults=${maxResults}&key=${GOOGLE_API_KEY}`;
 
 /* Editorial categories shown in the homepage rail.
    Each maps to its closest YouTube category id so that switching tabs

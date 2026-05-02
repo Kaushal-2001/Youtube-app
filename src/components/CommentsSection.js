@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ChevronDown, Heart, Reply } from "lucide-react";
-import { getAvatarColor, getCommentsUrl } from "../utils/constants";
+import { ChevronDown, Heart } from "lucide-react";
+import {
+  getAvatarColor,
+  getCommentsUrl,
+  getRepliesUrl,
+} from "../utils/constants";
 
 const formatCount = (n) => {
   const num = Number(n) || 0;
@@ -68,13 +72,117 @@ const Avatar = ({ name, imageUrl, size = 32 }) => {
   );
 };
 
+/* A single reply: flat comment object (no nested topLevelComment) */
+const ReplyRow = ({ reply }) => {
+  const [liked, setLiked] = useState(false);
+  const s = reply.snippet;
+  const text = stripHtml(s.textDisplay);
+  const baseLikes = s.likeCount || 0;
+  const displayLikes = baseLikes + (liked ? 1 : 0);
+
+  return (
+    <div className="flex gap-3">
+      <Avatar
+        name={s.authorDisplayName}
+        imageUrl={s.authorProfileImageUrl}
+        size={26}
+      />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline gap-2 mb-1">
+          <span
+            className="text-[12px] font-medium"
+            style={{ color: "rgba(245,241,234,0.9)" }}
+          >
+            {s.authorDisplayName}
+          </span>
+          <span
+            className="text-[10px]"
+            style={{ color: "rgba(245,241,234,0.38)" }}
+          >
+            {getTimeAgo(s.publishedAt)}
+          </span>
+        </div>
+        <p
+          className="text-[13px] leading-[1.6] mb-1.5 whitespace-pre-wrap break-words"
+          style={{ color: "rgba(245,241,234,0.8)" }}
+        >
+          {text}
+        </p>
+        <button
+          onClick={() => setLiked((v) => !v)}
+          className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[11px] p-0 transition-colors"
+          style={{
+            color: liked ? "#FF5C2B" : "rgba(245,241,234,0.38)",
+          }}
+        >
+          <Heart
+            className="w-[12px] h-[12px]"
+            strokeWidth={2}
+            fill={liked ? "#FF5C2B" : "none"}
+          />
+          <span>{formatCount(displayLikes)}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const REPLIES_PAGE = 10;
+
 const CommentRow = ({ comment }) => {
   const [liked, setLiked] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [extraReplies, setExtraReplies] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [replyError, setReplyError] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(REPLIES_PAGE);
+
   const top = comment.snippet.topLevelComment.snippet;
+  const topId = comment.snippet.topLevelComment.id;
   const replyCount = comment.snippet.totalReplyCount || 0;
   const text = stripHtml(top.textDisplay);
   const baseLikes = top.likeCount || 0;
   const displayLikes = baseLikes + (liked ? 1 : 0);
+
+  /* Inline replies that ride along with the commentThreads response (≤ 5) */
+  const inlineReplies = comment.replies?.comments || [];
+
+  /* If we've fetched the full set, prefer that. Otherwise show the inline. */
+  const repliesToShow = extraReplies ?? inlineReplies;
+  const visibleReplies = repliesToShow.slice(0, visibleCount);
+  const remaining = repliesToShow.length - visibleReplies.length;
+  const hasMoreToFetch =
+    extraReplies === null && replyCount > inlineReplies.length;
+
+  const handleToggle = async () => {
+    const next = !open;
+    setOpen(next);
+    /* Reset paging when collapsing so the next open starts fresh */
+    if (!next) {
+      setVisibleCount(REPLIES_PAGE);
+      return;
+    }
+    /* Lazy-load the rest the first time we expand */
+    if (hasMoreToFetch) {
+      setLoadingMore(true);
+      setReplyError(null);
+      try {
+        const res = await fetch(getRepliesUrl(topId, 100));
+        if (!res.ok) throw new Error("bad response");
+        const json = await res.json();
+        const items = json.items || [];
+        /* API returns newest-first; reverse to chronological for natural flow */
+        setExtraReplies([...items].reverse());
+      } catch {
+        setReplyError("Couldn't load replies.");
+      }
+      setLoadingMore(false);
+    }
+  };
+
+  const showMore = () => {
+    setVisibleCount((n) => n + REPLIES_PAGE);
+  };
 
   return (
     <div className="flex gap-3">
@@ -119,19 +227,84 @@ const CommentRow = ({ comment }) => {
             />
             <span>{formatCount(displayLikes)}</span>
           </button>
+
           {replyCount > 0 && (
             <button
-              className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[11px] p-0 transition-colors hover:text-white/70"
-              style={{ color: "rgba(245,241,234,0.38)" }}
+              onClick={handleToggle}
+              className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[11px] p-0 transition-colors"
+              style={{ color: open ? "#FF5C2B" : "rgba(245,241,234,0.55)" }}
             >
-              <Reply className="w-[13px] h-[13px]" strokeWidth={2} />
+              <ChevronDown
+                className="w-[13px] h-[13px] transition-transform"
+                strokeWidth={2}
+                style={{ transform: open ? "rotate(180deg)" : "none" }}
+              />
               <span>
-                {formatCount(replyCount)}{" "}
+                {open ? "Hide" : "Show"} {formatCount(replyCount)}{" "}
                 {replyCount === 1 ? "reply" : "replies"}
               </span>
             </button>
           )}
         </div>
+
+        {/* Replies panel */}
+        {open && (
+          <div
+            className="mt-4 flex flex-col gap-4"
+            style={{
+              paddingLeft: 18,
+              borderLeft: "1px solid rgba(245,241,234,0.06)",
+            }}
+          >
+            {loadingMore && repliesToShow.length === 0 && (
+              <p
+                className="text-[12px]"
+                style={{ color: "rgba(245,241,234,0.5)" }}
+              >
+                Loading replies…
+              </p>
+            )}
+            {visibleReplies.map((r) => (
+              <ReplyRow key={r.id} reply={r} />
+            ))}
+            {loadingMore && repliesToShow.length > 0 && (
+              <p
+                className="text-[11px]"
+                style={{ color: "rgba(245,241,234,0.4)" }}
+              >
+                Loading more…
+              </p>
+            )}
+            {!loadingMore && remaining > 0 && (
+              <button
+                type="button"
+                onClick={showMore}
+                className="bg-transparent border-none cursor-pointer flex items-center gap-1.5 text-[12px] p-0 self-start transition-colors"
+                style={{ color: "rgba(245,241,234,0.65)" }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "#F5F1EA")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "rgba(245,241,234,0.65)")
+                }
+              >
+                <ChevronDown
+                  className="w-[13px] h-[13px]"
+                  strokeWidth={2}
+                />
+                <span>Show more replies</span>
+              </button>
+            )}
+            {replyError && (
+              <p
+                className="text-[11px]"
+                style={{ color: "rgba(245,241,234,0.5)" }}
+              >
+                {replyError}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
