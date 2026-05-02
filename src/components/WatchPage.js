@@ -90,7 +90,8 @@ const splitTitle = (raw) => {
 
 /* ── Player ──────────────────────────────────────────────── */
 const Player = ({ videoId, snippet, contentDetails }) => {
-  const [playing, setPlaying] = useState(false);
+  /* Autoplay on mount — user just navigated here intentionally */
+  const [playing, setPlaying] = useState(true);
   const thumb = getBestThumbnail(snippet?.thumbnails);
   const eyebrowLabel =
     CATEGORY_LABEL[snippet?.categoryId] || "VIDEO";
@@ -104,7 +105,7 @@ const Player = ({ videoId, snippet, contentDetails }) => {
         aspectRatio: "16/9",
         background: "#0a0a0b",
       }}
-      onClick={() => setPlaying(true)}
+      
     >
       {playing ? (
         <iframe
