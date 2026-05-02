@@ -275,14 +275,14 @@ const FramingBlock = ({ video }) => {
         </span>
       </div>
 
-      {/* Title (serif) */}
+      {/* Title */}
       <h1
-        className="font-serif text-[#F5F1EA] flex flex-wrap"
+        className="text-[#F5F1EA] flex flex-wrap"
         style={{
           fontSize: 38,
-          fontWeight: 400,
+          fontWeight: 600,
           lineHeight: 1.05,
-          letterSpacing: "-0.02em",
+          letterSpacing: "-0.025em",
           marginBottom: 4,
           columnGap: 10,
           rowGap: 0,
@@ -302,17 +302,18 @@ const FramingBlock = ({ video }) => {
         ))}
       </h1>
 
-      {/* Italic subtitle (when title splits cleanly) */}
+      {/* Subtitle (when title splits cleanly) */}
       {titleSub && (
         <p
-          className="font-serif italic flex flex-wrap"
+          className="flex flex-wrap"
           style={{
             fontSize: 22,
             fontWeight: 400,
-            lineHeight: 1.15,
-            color: "rgba(245,241,234,0.75)",
+            lineHeight: 1.2,
+            color: "rgba(245,241,234,0.65)",
             marginBottom: 18,
             columnGap: 7,
+            letterSpacing: "-0.015em",
           }}
         >
           {subtitleWords.map((w, i) => (
@@ -524,15 +525,15 @@ const DescriptionCard = ({ video }) => {
         onClick={() => setExpanded((v) => !v)}
         className="bg-transparent border-none cursor-pointer flex items-center gap-1 mt-2.5 p-0"
       >
-        <em
-          className="font-serif italic"
+        <span
           style={{
             fontSize: 13,
-            color: "rgba(245,241,234,0.55)",
+            fontWeight: 500,
+            color: "rgba(245,241,234,0.65)",
           }}
         >
           {expanded ? "Show less" : "Show more"}
-        </em>
+        </span>
         <span
           className="flex transition-transform duration-200"
           style={{
@@ -560,26 +561,26 @@ const UpNextRail = ({ videos, currentId }) => {
     >
       <div className="mb-1.5">
         <h3
-          className="text-[16px] font-medium text-[#F5F1EA] font-sans"
-          style={{ letterSpacing: "-0.01em" }}
+          className="text-[16px] font-semibold text-[#F5F1EA]"
+          style={{ letterSpacing: "-0.015em" }}
         >
           Up{" "}
-          <em
-            className="font-serif italic font-light"
-            style={{ fontWeight: 300 }}
+          <span
+            className="font-semibold"
+            style={{ color: "#FF5C2B" }}
           >
             next
-          </em>
+          </span>
         </h3>
       </div>
 
       <p
-        className="font-serif italic mb-5"
+        className="mb-5"
         style={{
-          fontWeight: 300,
-          fontSize: 13,
-          color: "rgba(245,241,234,0.55)",
-          lineHeight: 1.45,
+          fontWeight: 400,
+          fontSize: 12,
+          color: "rgba(245,241,234,0.5)",
+          lineHeight: 1.5,
         }}
       >
         From the channels and themes around this story
@@ -596,9 +597,9 @@ const UpNextRail = ({ videos, currentId }) => {
         style={{ borderTop: "1px solid rgba(245,241,234,0.06)" }}
       >
         <span
-          className="font-serif italic inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+          className="inline-flex items-center gap-1.5 cursor-pointer transition-colors"
           style={{
-            fontWeight: 300,
+            fontWeight: 500,
             fontSize: 13,
             color: "rgba(245,241,234,0.6)",
           }}

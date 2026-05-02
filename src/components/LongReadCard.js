@@ -67,8 +67,8 @@ const LongReadCard = ({ info }) => {
         </div>
 
         <h3
-          className="font-serif text-[20px] font-normal text-[#F5F1EA] leading-[1.22]"
-          style={{ letterSpacing: "-0.015em" }}
+          className="text-[20px] font-semibold text-[#F5F1EA] leading-[1.22]"
+          style={{ letterSpacing: "-0.02em" }}
         >
           {title}
         </h3>

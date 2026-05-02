@@ -25,7 +25,7 @@ const EmptyState = () => (
         <path d="M21,6H3C1.9,6,1,6.9,1,8v8c0,1.1,0.9,2,2,2h18c1.1,0,2-0.9,2-2V8C23,6.9,22.1,6,21,6z M21,16H3V8h18V16z M10,15l5.19-3 L10,9V15z" />
       </svg>
     </div>
-    <h3 className="text-base font-serif text-white mb-1">Nothing on this channel</h3>
+    <h3 className="text-base font-semibold text-white mb-1">Nothing on this channel</h3>
     <p className="text-sm text-white/40">Try a different mood from above.</p>
   </div>
 );

@@ -12,7 +12,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        serif: ['Fraunces', 'Georgia', 'serif'],
+        serif: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },

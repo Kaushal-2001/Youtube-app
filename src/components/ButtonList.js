@@ -17,7 +17,7 @@ const ButtonList = () => {
             onClick={() => dispatch(setCategory(id))}
             className={`px-[14px] py-[6px] rounded-full text-[12px] whitespace-nowrap flex-shrink-0 transition-colors duration-150 border ${
               isActive
-                ? "bg-[#e8622a] border-transparent text-white font-medium"
+                ? "bg-[#FF5C2B] border-transparent text-white font-medium"
                 : "bg-[#14141c] border-white/[0.08] text-white/55 hover:text-white hover:border-white/[0.18]"
             }`}
           >

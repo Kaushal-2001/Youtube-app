@@ -204,7 +204,7 @@ code {
 }
 .action-btn:hover { color: #F5F1EA; }
 
-/* ── Watch page: italic comment input ────────────────── */
+/* ── Watch page: comment input ───────────────────────── */
 .comment-input {
   width: 100%;
   background: transparent;
@@ -214,7 +214,6 @@ code {
   color: #F5F1EA;
   font-size: 14px;
   font-family: inherit;
-  font-style: italic;
   resize: none;
   overflow: hidden;
   transition: border-color 220ms, height 220ms;
@@ -222,12 +221,10 @@ code {
 }
 .comment-input::placeholder {
   color: rgba(245, 241, 234, 0.38);
-  font-style: italic;
 }
 .comment-input:focus {
   border-color: rgba(245, 241, 234, 0.32);
   height: 72px;
-  font-style: normal;
   outline: none;
 }
 

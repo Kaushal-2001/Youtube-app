@@ -149,7 +149,7 @@ const FeaturedShort = ({
         <div className="absolute bottom-0 inset-x-0 px-4 pb-4 pt-6 z-10 pointer-events-none">
           <div className="h-[3px] bg-white/[0.12] rounded-sm overflow-hidden mb-2.5">
             <div
-              className="h-full bg-[#e8622a] rounded-sm"
+              className="h-full bg-[#FF5C2B] rounded-sm"
               style={{
                 width: `${progress * 100}%`,
                 transition: "width 0.3s ease",
@@ -180,7 +180,7 @@ const FeaturedShort = ({
 
           <div className="flex gap-1.5 flex-wrap">
             {_tags.map((t) => (
-              <span key={t} className="text-[10px] text-[#e8622a] font-medium">
+              <span key={t} className="text-[10px] text-[#FF5C2B] font-medium">
                 {t}
               </span>
             ))}
@@ -191,10 +191,13 @@ const FeaturedShort = ({
       {/* Right info panel */}
       <div className="pt-2 flex flex-col gap-7" style={{ width: 260 }}>
         <div>
-          <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#e8622a] mb-2">
+          <div className="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#FF5C2B] mb-2">
             {_cat}
           </div>
-          <h2 className="text-[22px] font-serif leading-[1.2] font-normal">
+          <h2
+            className="text-[22px] font-semibold leading-[1.2]"
+            style={{ letterSpacing: "-0.02em" }}
+          >
             {title}
           </h2>
           <div className="mt-2.5 flex items-center gap-2">
@@ -218,9 +221,9 @@ const FeaturedShort = ({
         {/* Actions */}
         <div className="flex flex-col gap-2">
           <ActionButton
-            icon={<Heart className="w-4 h-4" strokeWidth={1.5} fill={liked ? "#e8622a" : "none"} />}
+            icon={<Heart className="w-4 h-4" strokeWidth={1.5} fill={liked ? "#FF5C2B" : "none"} />}
             active={liked}
-            activeColor="#e8622a"
+            activeColor="#FF5C2B"
             label="Like"
             count={formatCount(statistics?.likeCount)}
             onClick={onLike}
@@ -320,7 +323,7 @@ const QueueCard = ({ short, active, onClick }) => {
         width: 110,
         aspectRatio: "9/16",
         outline: active
-          ? "2px solid #e8622a"
+          ? "2px solid #FF5C2B"
           : hov
           ? "1px solid rgba(255,255,255,0.12)"
           : "none",
@@ -350,7 +353,7 @@ const QueueCard = ({ short, active, onClick }) => {
         <div className="absolute inset-0 flex items-center justify-center">
           {active ? (
             <div
-              className="w-2 h-2 rounded-full bg-[#e8622a]"
+              className="w-2 h-2 rounded-full bg-[#FF5C2B]"
               style={{ animation: "pulse-live 1.4s ease-in-out infinite" }}
             />
           ) : (
@@ -495,9 +498,12 @@ const Shorts = () => {
     <div className="px-7 pt-7 pb-8 min-h-[calc(100vh-60px)]">
       {/* Header */}
       <div className="flex items-baseline gap-3 mb-6">
-        <h1 className="text-[28px] font-serif font-normal text-white leading-tight">
+        <h1
+          className="text-[28px] font-semibold text-white leading-tight"
+          style={{ letterSpacing: "-0.025em" }}
+        >
           Shorts{" "}
-          <em className="italic text-[#e8622a] font-normal">— quick takes</em>
+          <span className="font-normal text-[#FF5C2B]">— quick takes</span>
         </h1>
         {!loading && (
           <span className="text-[11px] text-white/40 tracking-[0.06em]">
@@ -514,7 +520,7 @@ const Shorts = () => {
             onClick={() => setActiveCat(cat)}
             className={`px-[14px] py-[5px] rounded-full text-[12px] whitespace-nowrap flex-shrink-0 transition-colors duration-150 border ${
               activeCat === cat
-                ? "bg-[#e8622a] border-transparent text-white font-medium"
+                ? "bg-[#FF5C2B] border-transparent text-white font-medium"
                 : "bg-[#14141c] border-white/[0.08] text-white/55 hover:text-white hover:border-white/[0.18]"
             }`}
           >

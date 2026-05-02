@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Clock } from "lucide-react";
 import {
   CATEGORIES,
   getBestThumbnail,
@@ -122,7 +121,7 @@ const useInView = (ref, margin = "-40px") => {
   return seen;
 };
 
-/* ── Section title (sans + Fraunces italic + line draw) ─ */
+/* ── Section title (Inter, accent word in orange + line draw) ─ */
 const SectionTitle = ({ number, plain, italic }) => {
   const ref = useRef(null);
   const inView = useInView(ref);
@@ -141,11 +140,12 @@ const SectionTitle = ({ number, plain, italic }) => {
         style={{ letterSpacing: "-0.022em" }}
       >
         {plain}
-        <em
-          className="font-serif italic font-light"
+        <span
+          className="font-normal"
+          style={{ color: "#FF5C2B" }}
         >
           {italic}
-        </em>
+        </span>
         <span
           className={`s-line ${inView ? "drawn" : ""}`}
           style={{ position: "absolute", bottom: -6, left: 0, right: 0 }}
@@ -188,12 +188,6 @@ const CategoryRail = ({ active, onChange }) => {
         <div
           ref={railRef}
           className="no-bar relative flex gap-[6px] overflow-x-auto py-[11px]"
-          style={{
-            maskImage:
-              "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
-            WebkitMaskImage:
-              "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
-          }}
         >
           {/* Sliding pill */}
           <div
@@ -227,87 +221,6 @@ const CategoryRail = ({ active, onChange }) => {
             );
           })}
         </div>
-      </div>
-    </div>
-  );
-};
-
-/* ── Editor's Pick interrupt ──────────────────────────── */
-const EditorPick = ({ video, note }) => {
-  const ref = useRef(null);
-  const inView = useInView(ref, "-60px");
-  const [hidden, setHidden] = useState(false);
-  if (!video || hidden) return null;
-
-  const { snippet, statistics, contentDetails, id } = video;
-  const thumb = getBestThumbnail(snippet.thumbnails);
-  if (!thumb) return null;
-
-  const handleLoad = (e) => {
-    const { naturalWidth, naturalHeight } = e.currentTarget;
-    if (naturalWidth < 200 || naturalHeight < 200) setHidden(true);
-  };
-
-  return (
-    <div ref={ref}>
-      {/* Decorative divider */}
-      <div className="flex items-center my-[20px] mt-9 mb-7 relative">
-        <div className="flex-1 h-px bg-white/[0.08]" />
-        <span
-          className="font-serif italic font-light text-[13px] text-white/[0.36] px-[18px] whitespace-nowrap"
-          style={{ letterSpacing: "0.02em" }}
-        >
-          — Editor&apos;s pick of the week —
-        </span>
-        <div className="flex-1 h-px bg-white/[0.08]" />
-      </div>
-
-      <div
-        className={`vgrid${inView ? " pick-enter" : ""}`}
-        style={{ marginBottom: 0, opacity: inView ? undefined : 0 }}
-      >
-        <Link to={`/watch?v=${id}`} className="vcard" style={{ gridColumn: "span 2" }}>
-          <div className="thumb-shell">
-            <div className="thumb-inner aspect-video bg-white/[0.04]">
-              <img
-                src={thumb}
-                alt={snippet.title}
-                loading="lazy"
-                onError={() => setHidden(true)}
-                onLoad={handleLoad}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-          <div className="pt-3 flex flex-col gap-1.5">
-            <div className="flex gap-2 items-center">
-              <span className="text-[10px] font-semibold tracking-[0.12em] text-white/[0.28]">
-                EDITOR&apos;S PICK
-              </span>
-              <span className="text-[10px] text-white/20">·</span>
-              <span className="text-[10px] text-white/[0.3] flex items-center gap-[3px]">
-                <Clock className="w-[10px] h-[10px]" strokeWidth={2} />
-                {formatDuration(contentDetails?.duration)}
-              </span>
-            </div>
-            <h3
-              className="font-serif text-[22px] font-normal text-[#F5F1EA] leading-[1.2]"
-              style={{ letterSpacing: "-0.015em" }}
-            >
-              {snippet.title}
-            </h3>
-            {note && (
-              <p className="text-[13px] text-white/[0.44] italic leading-[1.55]">
-                &ldquo;{note}&rdquo;
-              </p>
-            )}
-            <div className="flex gap-2 text-[11px] text-white/[0.28] mt-0.5">
-              <span>{snippet.channelTitle}</span>
-              <span>·</span>
-              <span>{formatViews(statistics?.viewCount)}</span>
-            </div>
-          </div>
-        </Link>
       </div>
     </div>
   );
@@ -496,13 +409,8 @@ const MainContainer = () => {
   const showLoading = loading || !videosReady;
 
   /* Slice the validated response into editorial sections */
-  const lead1 = validVideos.slice(0, 8);
-  const editorPick = validVideos[8] || validVideos[0];
-  const editorNote = editorPick
-    ? `${editorPick.snippet.channelTitle} delivers a quietly remarkable piece — exactly the kind of thing we built SeamlessTV for.`
-    : "";
-  const lead2 = validVideos.slice(9, 17);
-  const more = validVideos.slice(17, 25);
+  const lead = validVideos.slice(0, 16);
+  const more = validVideos.slice(16, 24);
 
   /* Pick the longest videos for "Long reads" — fall back to last few */
   const longReads = useMemo(() => {
@@ -510,7 +418,7 @@ const MainContainer = () => {
       .filter((v) => parseDurationSeconds(v.contentDetails?.duration) >= 1500)
       .slice(0, 4);
     if (long.length >= 2) return long;
-    return validVideos.slice(25, 29);
+    return validVideos.slice(24, 28);
   }, [validVideos]);
 
   return (
@@ -518,13 +426,13 @@ const MainContainer = () => {
       <CategoryRail active={active} onChange={setActive} />
 
       <main className="max-w-[1440px] mx-auto px-7 pt-7">
-        {/* Lead grid 1 */}
+        {/* Lead grid */}
         {showLoading ? (
-          <GridSkeleton count={8} />
+          <GridSkeleton count={16} />
         ) : (
           <section>
-            <div className="vgrid" key={`lead1-${active}`}>
-              {lead1.map((v, i) => (
+            <div className="vgrid" key={`lead-${active}`}>
+              {lead.map((v, i) => (
                 <LinkedCard
                   key={v.id}
                   video={v}
@@ -533,26 +441,6 @@ const MainContainer = () => {
               ))}
             </div>
           </section>
-        )}
-
-        {/* Editor's pick interrupt */}
-        {!showLoading && editorPick && (
-          <EditorPick video={editorPick} note={editorNote} />
-        )}
-
-        {/* Lead grid 2 */}
-        {!showLoading && lead2.length > 0 && (
-          <div className="mt-9">
-            <div className="vgrid" key={`lead2-${active}`}>
-              {lead2.map((v, i) => (
-                <LinkedCard
-                  key={v.id}
-                  video={v}
-                  animDelay={mounted ? 480 + i * 60 : undefined}
-                />
-              ))}
-            </div>
-          </div>
         )}
       </main>
 
