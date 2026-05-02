@@ -451,6 +451,7 @@ const Shorts = () => {
 
   /* Keyboard navigation */
   useEffect(() => {
+    const max = Math.max(0, filtered.length - 1);
     const onKey = (e) => {
       if (
         e.target.tagName === "INPUT" ||
@@ -459,11 +460,11 @@ const Shorts = () => {
         return;
       if (e.key === "ArrowDown" || e.key === "j") {
         e.preventDefault();
-        goNext();
+        setCurrentIdx((i) => Math.min(max, i + 1));
       }
       if (e.key === "ArrowUp" || e.key === "k") {
         e.preventDefault();
-        goPrev();
+        setCurrentIdx((i) => Math.max(0, i - 1));
       }
     };
     window.addEventListener("keydown", onKey);

@@ -32,13 +32,6 @@ const formatDuration = (iso) => {
   return `${m}:${String(s).padStart(2, "0")}`;
 };
 
-const formatViews = (count) => {
-  const n = parseInt(count) || 0;
-  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M views`;
-  if (n >= 1e3) return `${Math.round(n / 1e3)}K views`;
-  return `${n} views`;
-};
-
 /* ── useValidatedVideos ───────────────────────────────────
    Probe every video's best-quality thumbnail with `new Image()`.
    YouTube serves a 120×90 grey placeholder when the requested

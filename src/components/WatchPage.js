@@ -91,14 +91,14 @@ const splitTitle = (raw) => {
 /* ── Player ──────────────────────────────────────────────── */
 const Player = ({ videoId, snippet, contentDetails }) => {
   /* Autoplay on mount — user just navigated here intentionally */
-  const [playing, setPlaying] = useState(true);
+  const playing = true;
   const thumb = getBestThumbnail(snippet?.thumbnails);
   const eyebrowLabel =
     CATEGORY_LABEL[snippet?.categoryId] || "VIDEO";
 
   return (
     <div
-      className="player-fadein relative w-full overflow-hidden cursor-pointer"
+      className="player-fadein relative w-full overflow-hidden"
       style={{
         borderRadius: 14,
         border: "1px solid rgba(255,255,255,0.06)",
