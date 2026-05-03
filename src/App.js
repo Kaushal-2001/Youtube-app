@@ -8,11 +8,13 @@ import WatchPage from "./components/WatchPage";
 import MainContainer from "./components/MainContainer";
 import SearchResults from "./components/SearchResults";
 import Shorts from "./components/Shorts";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
+        <ScrollToTop />
         <div className="">
           <Head />
           <Body>
